@@ -123,6 +123,3 @@ img { max-width: 100%; height: auto; display: block; }
 .footer-links a:hover { color: var(--text); }
 .disclaimer { margin: 0; font-size: .85rem; }
 
-@media (prefers-reduced-motion: reduce) {
-  .pill, .pill:hover, .pill:active { transition: none; transform: none; }
-}
