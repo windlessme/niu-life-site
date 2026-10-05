@@ -9,22 +9,12 @@ const base = import.meta.env.BASE_URL;
       <h2 id="download-title" class="big">立即下載 NIU-Life</h2>
       <p class="lead">iPhone 與 Android 都有，免費使用。</p>
       <StoreButtons />
-      <div class="platforms">
-        <div class="platform"><h3>iOS 版</h3><p>需要 iOS 26.2 以上。支援鎖定畫面小工具與課表即時動態。</p></div>
-        <div class="platform"><h3>Android 版</h3><p>需要 Android 8.0 以上。支援主畫面小工具、App 捷徑與上課中通知。</p></div>
-      </div>
     </div>
   </div>
 </section>
-
 
 <style>
   .download { text-align: center; }
   .download .lead { margin-inline: auto; }
   .app-icon { width: 88px; height: 88px; border-radius: 22px; margin: 0 auto 20px; background: #f8f8f8; border: 2px solid var(--ink-line); }
-  .platforms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 36px; text-align: left; }
-  .platform { background: var(--bg); border-radius: var(--radius); padding: 18px 22px; }
-  .platform h3 { margin: 0 0 4px; font-size: 1rem; }
-  .platform p { margin: 0; color: var(--muted); font-size: .9rem; }
-  @media (max-width: 640px) { .platforms { grid-template-columns: 1fr; } }
 </style>
