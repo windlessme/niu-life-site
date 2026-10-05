@@ -75,7 +75,7 @@ Android App（1.0.16 起）接管兩種網址，裝了 App 的手機點了會直
 
 ## 隱私權政策與聯絡窗口
 
-- **隱私權政策**：iOS 版、Android 版與網站共用一份，唯一來源是 `src/content/privacy.md`，公開網址 **https://niu-life.app/privacy**。只有單一平台的做法用「iOS 版」「Android 版」標示。修改後更新 frontmatter 的 `updated`，推到 `main` 就會部署。Android App 內的隱私權畫面是摘要，政策有實質變動時一起改（niu-app-android 的 `lib/features/settings/privacy_screen.dart`）；iOS 版的對應內容由 iOS 維護者處理。
+- **隱私權政策**：iOS 版、Android 版與網站共用一份，唯一來源是 `src/content/privacy.md`，公開網址 **https://niu-life.app/privacy**。採一般 App 的概括寫法（收集哪些資料、如何使用、第三方服務、權限、保存與安全、你的選擇、變更、聯絡），不逐項列功能細節（使用者 2026-10-05 決定）；但資料流向必須正確，新增會送出資料的功能時要確認仍涵蓋。修改後更新 frontmatter 的 `updated`，推到 `main` 就會部署。Android App 內的隱私權畫面是摘要，政策有實質變動時一起改（niu-app-android 的 `lib/features/settings/privacy_screen.dart`）；iOS 版的對應內容由 iOS 維護者處理。
 - **聯絡信箱**：兩個平台共用 **hi@niu-life.app**（Cloudflare Email Routing）。
 - **問題回報表單**：https://forms.gle/2ok6fydShrfe6PHr5（網站許願池與 Android App 的「回報問題」共用）。
 
