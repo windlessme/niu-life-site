@@ -130,4 +130,6 @@ img { max-width: 100%; height: auto; display: block; }
 .footer-links a { color: var(--muted); }
 .footer-links a:hover { color: var(--text); }
 .disclaimer { margin: 0; font-size: .85rem; }
+.license { margin: 0; font-size: .85rem; }
+.license a { color: inherit; }
 
