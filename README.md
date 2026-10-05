@@ -47,6 +47,17 @@ npm run preview   # 預覽建置結果
 - iPhone／iPad 直接前往 App Store，Android 直接前往 Google Play，電腦顯示按鈕與這個網址的 QR Code。
 - 可以加 `utm_*` 參數區分來源，例如 `https://niu-life.app/download?utm_source=poster&utm_medium=qr&utm_campaign=freshman`。GA 會依參數歸類這次瀏覽；Android 的參數也會帶進 Google Play 的安裝來源（Play Console → 使用者取得）。App Store 不支援這種參數。
 
+## App Links（/download、/open/…）
+
+`public/.well-known/assetlinks.json` 是 Play Console 產生的 Digital Asset Links，證明 niu-life.app 屬於 `me.windless.niulife`（憑證是 Google 保管的 App 簽署金鑰，所以只有從 Play 安裝的 App 會通過驗證）。
+
+Android App（1.0.16 起）接管兩種網址，裝了 App 的手機點了會直接開 App：
+
+- `https://niu-life.app/download`：開 App；沒裝的人照常前往商店。
+- `https://niu-life.app/open/<功能>`：開 App 裡的功能，`<功能>` 是 `schedule`（課表）、`attendance`（快速點名）、`library`（入館碼）、`mail`（校園信箱）、`moodle`（M 園區）、`calendar`（行事曆）。沒裝 App 或用 iPhone 的人會看到 `src/pages/open/[feature].astro` 的說明頁與下載按鈕。新增功能時，這裡和 App 的 `lib/app/deep_links.dart` 要一起改。
+
+驗證：`https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://niu-life.app&relation=delegate_permission/common.handle_all_urls`。
+
 ## Google Analytics
 
 評估 ID `G-TQSN4NFDVD`（資料串流 16044768167），在 `src/layouts/Base.astro` 載入，已關閉 Google 信號與廣告個人化。
