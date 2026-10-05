@@ -18,8 +18,9 @@ python3 -m http.server 8090
 | `privacy.template.html` | 隱私權政策的頁面外框 |
 | `build_privacy.py` | 把 Android repo 的 `docs/android-privacy-policy.md` 轉成 `privacy.html` |
 | `styles.css` | 全部樣式，淺色／深色配色在 `:root` |
-| `main.js` | 依裝置把對應的商店按鈕排第一並加強調（iPhone → App Store，Android → Google Play） |
-| `assets/` | App 圖示（從 Play 商店取得）與兩張截圖（Play 商店截圖裁出手機部分） |
+| `main.js` | 捲動敘事：每個固定段落（`data-pin`）依捲動進度設 `--p`；開場的貼紙飛進手機、功能區依進度切換 01～06 與手機畫面、右下角頁碼；系統開「減少動態效果」時全部改成靜態版面。另外依裝置把對應的商店按鈕排第一 |
+| `assets/` | App 圖示 |
+| `assets/screens/` | 功能區的 App 畫面：用商店截圖模式（`--dart-define=NIU_STORE_SCREENSHOTS=true`，不顯示示範模式提示）在模擬器拍，時間設在週一 08:30 讓首頁有「上課中」，540×1200 WebP |
 
 ## 部署
 
