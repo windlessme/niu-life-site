@@ -1,0 +1,82 @@
+---
+// A single link for posters and posts: phones go straight to their store,
+// computers see both stores and a QR code of this page to scan.
+import QRCode from 'qrcode';
+import Base from '../layouts/Base.astro';
+import StoreButtons from '../components/StoreButtons.astro';
+
+const link = new URL('download', Astro.site).href;
+const qr = await QRCode.toString(link, {
+  type: 'svg',
+  margin: 1,
+  errorCorrectionLevel: 'M',
+  color: { dark: '#15171cff', light: '#ffffffff' },
+});
+---
+<Base title="下載 NIU-Life" description="下載 NIU-Life：iPhone 前往 App Store，Android 前往 Google Play。">
+  <section class="section">
+    <div class="wrap">
+      <div class="card download">
+        <img class="app-icon" src={`${import.meta.env.BASE_URL}assets/icon-192.png`} width="88" height="88" alt="" />
+        <h1 class="big">下載 NIU-Life</h1>
+        <p class="lead going" hidden>正在前往 <strong data-store-name></strong>…</p>
+        <p class="lead pick">宜大學生的校園助手，iPhone 與 Android 都有，免費使用。</p>
+        <StoreButtons />
+        <figure class="qr">
+          <div class="qr-code" set:html={qr} role="img" aria-label="下載頁面的 QR Code" />
+          <figcaption>用手機掃描，自動前往對應的商店</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { visitorPlatform } from '../scripts/platform';
+
+  const APP_STORE = 'https://apps.apple.com/tw/app/niu-life/id6813616626';
+  const GOOGLE_PLAY = 'https://play.google.com/store/apps/details?id=me.windless.niulife';
+
+  const platform = visitorPlatform();
+  if (platform) {
+    // utm_* on this link become Google Play's install referrer, so Play
+    // Console shows which poster or post a download came from.
+    const params = new URLSearchParams(location.search);
+    const utm = [...params].filter(([k]) => k.startsWith('utm_'));
+    const target =
+      platform === 'ios'
+        ? APP_STORE
+        : utm.length
+          ? `${GOOGLE_PLAY}&referrer=${encodeURIComponent(new URLSearchParams(utm).toString())}`
+          : GOOGLE_PLAY;
+    document.querySelector<HTMLElement>('.going')!.hidden = false;
+    document.querySelector<HTMLElement>('.pick')!.hidden = true;
+    document.querySelector<HTMLElement>('[data-store-name]')!.textContent =
+      platform === 'ios' ? 'App Store' : 'Google Play';
+    // GA counts this page's view (with its utm_* campaign) as the redirect;
+    // custom events are batched for seconds and would be lost on leaving.
+    // So leave once gtag.js has loaded and sent the view, or after 1.5 s.
+    const started = performance.now();
+    const go = () => {
+      const loaded = 'google_tag_manager' in window;
+      if ((loaded && performance.now() - started > 300) || performance.now() - started > 1500) {
+        location.replace(target);
+      } else {
+        setTimeout(go, 100);
+      }
+    };
+    go();
+  }
+</script>
+
+<style>
+  .download { text-align: center; max-width: 640px; margin-inline: auto; }
+  .lead { margin-inline: auto; }
+  .app-icon { width: 88px; height: 88px; border-radius: 22px; margin: 0 auto 20px; background: #f8f8f8; border: 2px solid var(--ink-line); }
+  .qr { margin: 36px auto 0; display: grid; justify-items: center; gap: 10px; }
+  .qr-code { width: 180px; padding: 10px; background: #fff; border-radius: 16px; border: 2px solid var(--ink-line); }
+  .qr-code :global(svg) { display: block; width: 100%; height: auto; }
+  figcaption { color: var(--muted); font-size: .9rem; }
+  /* Phones are on their way to the store; the QR code is for computers. */
+  @media (pointer: coarse) and (max-width: 820px) { .qr { display: none; } }
+</style>

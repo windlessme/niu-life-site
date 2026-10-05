@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css';
+import { GA_ID } from '../site';
 
 interface Props {
   title: string;
@@ -9,6 +10,8 @@ interface Props {
 }
 const { title, description, home = false } = Astro.props;
 const base = import.meta.env.BASE_URL;
+// Addresses read without .html (GitHub Pages serves /privacy from privacy.html).
+const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/'), Astro.site);
 ---
 <!doctype html>
 <html lang="zh-Hant-TW">
@@ -19,7 +22,7 @@ const base = import.meta.env.BASE_URL;
     <meta name="description" content={description} />
     <meta name="theme-color" content="#f2f3f7" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
-    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <link rel="canonical" href={canonical} />
     <meta property="og:type" content="website" />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -28,6 +31,14 @@ const base = import.meta.env.BASE_URL;
     <meta name="apple-itunes-app" content="app-id=6813616626" />
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}assets/favicon-32.png`} />
     <link rel="apple-touch-icon" href={`${base}assets/apple-touch-icon.png`} />
+    <!-- Google Analytics: page views and store clicks; no Google signals or ad personalisation. -->
+    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
+    <script is:inline define:vars={{ GA_ID }}>
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = function () { window.dataLayer.push(arguments); };
+      window.gtag('js', new Date());
+      window.gtag('config', GA_ID, { allow_google_signals: false, allow_ad_personalization_signals: false });
+    </script>
   </head>
   <body class:list={{ home }}>
     <a class="skip-link" href="#main">跳到主要內容</a>
@@ -50,7 +61,7 @@ const base = import.meta.env.BASE_URL;
     <footer class="site-footer">
       <div class="wrap">
         <div class="footer-links">
-          <a href={`${base}privacy.html`}>隱私權政策</a>
+          <a href={`${base}privacy`}>隱私權政策</a>
           <a href="https://forms.gle/2ok6fydShrfe6PHr5">許願池</a>
           <a href="mailto:hi@windless.me">聯絡我們</a>
           <a href="https://github.com/windlessme/niu-app-android">Android 原始碼</a>

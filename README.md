@@ -20,7 +20,10 @@ npm run preview   # 預覽建置結果
 | 位置 | 用途 |
 |---|---|
 | `src/pages/index.astro` | 首頁，依序組合 7 個段落 |
-| `src/pages/privacy.astro` | 隱私權政策（`/privacy.html`，Play Console 連到這裡） |
+| `src/pages/privacy.astro` | 隱私權政策，網址 `/privacy`（`/privacy.html` 也可以）；最後一節是網站本身的 GA 說明 |
+| `src/pages/download.astro` | 下載連結 `/download`：手機自動前往 App Store／Google Play，電腦顯示兩個按鈕與 QR Code |
+| `src/components/StoreButtons.astro` | 商店按鈕（新分頁開啟，點擊記到 GA 的 `store_click`） |
+| `src/site.ts` | GA 評估 ID |
 | `src/components/` | 各段落：`Hero` 開場、`About`、`Features` 功能、`Privacy`、`Faq`、`Wish` 許願池、`Download` |
 | `src/scripts/story.ts` | 捲動敘事：開場貼紙飛進手機、功能區固定並切換 01～06、段落淡入、右下角頁碼 |
 | `src/layouts/Base.astro` | `<head>`、頁首、頁尾 |
@@ -36,6 +39,21 @@ npm run preview   # 預覽建置結果
 ### App 畫面
 
 `public/assets/screens/` 的截圖用 App 的商店截圖模式（`flutter build apk --debug --dart-define=NIU_STORE_SCREENSHOTS=true`，不顯示示範模式提示）在模擬器上拍，時間設在週一 08:30 讓首頁有「上課中」，轉成 540×1200 WebP。
+
+## 下載連結 /download
+
+海報、傳單、社群貼文都用 **https://niu-life.app/download**，類似 Firebase Dynamic Links：
+
+- iPhone／iPad 直接前往 App Store，Android 直接前往 Google Play，電腦顯示按鈕與這個網址的 QR Code。
+- 可以加 `utm_*` 參數區分來源，例如 `https://niu-life.app/download?utm_source=poster&utm_medium=qr&utm_campaign=freshman`。GA 會依參數歸類這次瀏覽；Android 的參數也會帶進 Google Play 的安裝來源（Play Console → 使用者取得）。App Store 不支援這種參數。
+
+## Google Analytics
+
+評估 ID `G-TQSN4NFDVD`（資料串流 16044768167），在 `src/layouts/Base.astro` 載入，已關閉 Google 信號與廣告個人化。
+
+- 頁面瀏覽：每頁自動記錄；`/download` 的瀏覽次數就是透過下載連結前往商店的次數（跳轉前會等頁面瀏覽送出，最多 1.5 秒）。
+- `store_click`：點了哪個商店按鈕（`store` = ios／android）。
+- GA 會把自訂事件暫存約 5 秒再批次送出，頁面在那之前離開就會遺失，所以商店按鈕都開新分頁，`/download` 不另送事件。
 
 ## 部署
 
