@@ -37,7 +37,7 @@ NIU-Life 是個人開發的非官方工具，與國立宜蘭大學並無隸屬�
 本服務使用以下第三方服務，它們依各自的隱私權政策處理資料：
 
 - **Google Firebase／Google Analytics**：App 與網站的使用統計。已關閉廣告相關功能。詳見 [Google 隱私權政策](https://policies.google.com/privacy)。
-- **Microsoft Clarity**：網站的使用分析，包含熱圖與瀏覽過程重播。詳見 [Microsoft 隱私權聲明](https://privacy.microsoft.com/privacystatement)。
+- **Microsoft Clarity**：網站的使用統計。詳見 [Microsoft 隱私權聲明](https://privacy.microsoft.com/privacystatement)。
 - **Apple**：App Store 下載與更新，以及 iOS 版即時動態的推播。
 - **Google Play**：Android 版的下載與更新檢查。
 - **國立宜蘭大學的校務系統**：你登入與操作的學校服務，依學校的規定處理資料。
