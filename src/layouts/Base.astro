@@ -1,6 +1,6 @@
 ---
 import '../styles/global.css';
-import { GA_ID } from '../site';
+import { CLARITY_ID, GA_ID } from '../site';
 
 interface Props {
   title: string;
@@ -38,6 +38,14 @@ const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/i
       window.gtag = function () { window.dataLayer.push(arguments); };
       window.gtag('js', new Date());
       window.gtag('config', GA_ID, { allow_google_signals: false, allow_ad_personalization_signals: false });
+    </script>
+    <!-- Microsoft Clarity: heatmaps and session replays of the site. -->
+    <script is:inline define:vars={{ CLARITY_ID }}>
+      (function (c, l, a, r, i, t, y) {
+        c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
+        t = l.createElement(r); t.async = 1; t.src = 'https://www.clarity.ms/tag/' + i;
+        y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+      })(window, document, 'clarity', 'script', CLARITY_ID);
     </script>
     <slot name="head" />
   </head>
