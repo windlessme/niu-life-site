@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+// Synced from niu-app-android's docs by scripts/sync-policy.mjs.
+import { Content, frontmatter } from '../content/privacy.md';
+---
+<Base title="隱私權政策｜NIU-Life" description="NIU-Life Android 版如何處理你的學校帳號、查詢資料與匿名使用統計。">
+  <article class="wrap doc">
+    <h1>{frontmatter.title}</h1>
+    <p class="updated">{frontmatter.updated}</p>
+    <p class="note">
+      這份政策適用於 Android 版。iOS 版由另一位開發者維護，隱私權政策請見
+      <a href="https://apps.apple.com/tw/app/niu-life/id6813616626">App Store 頁面</a>。
+    </p>
+    <Content />
+  </article>
+</Base>
+
+<style>
+  .doc { max-width: 760px; padding-block: 56px 88px; }
+  h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); line-height: 1.25; margin: 0 0 8px; }
+  .updated { color: var(--muted); margin: 0 0 32px; }
+  .doc :global(h2) { font-size: 1.35rem; margin: 40px 0 12px; padding-top: 24px; border-top: 1px solid var(--line); }
+  .doc :global(h3) { font-size: 1.08rem; margin: 24px 0 8px; }
+  .doc :global(ul) { padding-left: 1.3em; }
+  .doc :global(li) { margin: 4px 0; }
+  .note { background: var(--accent-soft); border-radius: 14px; padding: 14px 18px; margin: 0 0 24px; font-size: .95rem; }
+</style>

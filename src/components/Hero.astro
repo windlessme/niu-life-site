@@ -1,0 +1,74 @@
+---
+// Campus troubles around a phone; on scroll they fly in and the screen
+// lights up (see scripts/story.ts). x and y place each one around the
+// phone, in units scaled to the viewport.
+const troubles = [
+  { text: '又要重新登入？', x: -34, y: -27, r: -8, tone: '' },
+  { text: '點名 QR Code 在哪', x: 30, y: -31, r: 6, tone: 'alt' },
+  { text: '信箱塞爆 999+', x: -40, y: 4, r: 4, tone: '' },
+  { text: '請假卡在哪一關？', x: 38, y: -2, r: -5, tone: 'warn' },
+  { text: '今天在哪間教室', x: -30, y: 34, r: -3, tone: 'alt' },
+  { text: '討論室又滿了', x: 32, y: 30, r: 7, tone: '' },
+  { text: '畢業學分還差幾個', x: -8, y: -33, r: 2, tone: 'warn' },
+  { text: '包裹到了沒', x: 6, y: 40, r: -6, tone: 'alt' },
+];
+const base = import.meta.env.BASE_URL;
+---
+<section class="hero" id="top" data-scene="開場" aria-labelledby="hero-title">
+  <div class="stage">
+    <div class="hero-copy">
+      <p class="eyebrow">國立宜蘭大學 · 非官方校園助手</p>
+      <h1 id="hero-title">宜大生活的麻煩，<br /><em>收進一支手機。</em></h1>
+    </div>
+    <div class="hero-phone" aria-hidden="true">
+      <div class="phone">
+        <div class="phone-screen">
+          <img src={`${base}assets/screens/home.webp`} alt="" width="540" height="1200" />
+          <div class="phone-off"><span>NIU-Life</span></div>
+        </div>
+      </div>
+    </div>
+    <ul class="troubles" aria-label="這些麻煩，NIU-Life 幫你處理">
+      {troubles.map((t) => (
+        <li class:list={['sticker', t.tone]} data-x={t.x} data-y={t.y} data-r={t.r}>{t.text}</li>
+      ))}
+    </ul>
+    <p class="hero-after" aria-hidden="true">一個 App，用你原本的學校帳號。</p>
+    <p class="scroll-hint" aria-hidden="true">往下捲 ↓</p>
+  </div>
+  <a class="skip-anim pill" href="#about">跳過動畫 <span aria-hidden="true">⏭</span></a>
+</section>
+
+<style>
+  .hero { background: radial-gradient(120% 80% at 50% 0%, var(--bg-tint), var(--bg) 70%); }
+  .stage { display: grid; place-items: center; }
+  .hero-copy { position: absolute; top: 5%; left: 0; right: 0; text-align: center; padding-inline: 16px; }
+  h1 { font-size: clamp(2.1rem, 6.4vw, 4.4rem); line-height: 1.12; margin: 0; letter-spacing: -.01em; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .hero-phone { position: absolute; left: 50%; top: 61%; width: min(27vh, 46vw, 270px); translate: -50% -50%; }
+  .phone-off {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    background: linear-gradient(160deg, #1d2b45, #0b1220); color: #cfe0ff; font-weight: 800; letter-spacing: .06em;
+  }
+  .troubles { list-style: none; margin: 0; padding: 0; position: absolute; left: 50%; top: 61%; width: 0; height: 0; }
+  .sticker {
+    position: absolute; left: 0; top: 0; white-space: nowrap;
+    padding: 8px 14px; border-radius: 999px;
+    background: var(--surface); color: var(--text);
+    border: 2px solid var(--ink-line); box-shadow: 3px 3px 0 var(--ink-line);
+    font-weight: 800; font-size: clamp(.85rem, 1.6vw, 1.05rem);
+    will-change: transform, opacity;
+  }
+  .sticker.alt { background: var(--accent-soft); color: var(--accent); }
+  .sticker.warn { background: var(--warn-soft); color: var(--warn); }
+  @media (max-width: 640px) { .sticker { padding: 5px 10px; font-size: .8rem; box-shadow: 2px 2px 0 var(--ink-line); } }
+  .hero-after {
+    position: absolute; top: 8%; left: 0; right: 0; margin: 0; padding-inline: 16px; text-align: center;
+    font-size: clamp(1.4rem, 3.6vw, 2.4rem); font-weight: 800; color: var(--accent); opacity: 0;
+  }
+  .scroll-hint { position: absolute; bottom: 2.5%; left: 0; right: 0; text-align: center; margin: 0; font-size: .8rem; letter-spacing: .2em; color: var(--muted); animation: nudge 1.6s ease-in-out infinite; }
+  @keyframes nudge { 50% { transform: translateY(6px); } }
+  .skip-anim { position: fixed; left: 16px; bottom: 16px; z-index: 16; font-size: .85rem; padding: 6px 12px; transition: opacity .2s, visibility .2s; }
+  :global(.hero-done) .skip-anim { opacity: 0; visibility: hidden; }
+  @media (prefers-reduced-motion: reduce) { .scroll-hint { animation: none; } }
+</style>

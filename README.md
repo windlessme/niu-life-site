@@ -1,43 +1,52 @@
 # NIU-Life 網站
 
-NIU-Life 的官網：功能介紹、iOS／Android 下載入口、常見問題與 Android 隱私權政策。純靜態 HTML／CSS，沒有建置步驟，任何靜態主機都能放（GitHub Pages、Cloudflare Pages 等）。
+NIU-Life 的官網 **https://niu-life.app/**：捲動敘事的首頁、iOS／Android 下載入口、常見問題、許願池與 Android 隱私權政策。
 
-## 本機預覽
+用 [Astro](https://astro.build/) 產生純靜態網站，捲動動畫用 [GSAP ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/)，TypeScript 撰寫。
+
+## 開發
+
+使用 `.nvmrc` 指定的 Node 22 以上：
 
 ```bash
-python3 -m http.server 8090
-# 打開 http://localhost:8090/
+npm install
+npm run dev       # http://localhost:4321
+npm run build     # 同步隱私權政策 → astro check → dist/
+npm run preview   # 預覽建置結果
 ```
 
-## 檔案
+## 結構
 
-| 檔案 | 用途 |
+| 位置 | 用途 |
 |---|---|
-| `index.html` | 首頁 |
-| `privacy.html` | 隱私權政策，**由腳本產生，不要直接改** |
-| `privacy.template.html` | 隱私權政策的頁面外框 |
-| `build_privacy.py` | 把 Android repo 的 `docs/android-privacy-policy.md` 轉成 `privacy.html` |
-| `styles.css` | 全部樣式，淺色／深色配色在 `:root` |
-| `main.js` | 捲動敘事：每個固定段落（`data-pin`）依捲動進度設 `--p`；開場的貼紙飛進手機、功能區依進度切換 01～06 與手機畫面、右下角頁碼；系統開「減少動態效果」時故事照樣跟著捲動走，但只淡入淡出、不位移不縮放，也沒有自動播放的動畫。另外依裝置把對應的商店按鈕排第一 |
-| `assets/` | App 圖示 |
-| `assets/screens/` | 功能區的 App 畫面：用商店截圖模式（`--dart-define=NIU_STORE_SCREENSHOTS=true`，不顯示示範模式提示）在模擬器拍，時間設在週一 08:30 讓首頁有「上課中」，540×1200 WebP |
+| `src/pages/index.astro` | 首頁，依序組合 7 個段落 |
+| `src/pages/privacy.astro` | 隱私權政策（`/privacy.html`，Play Console 連到這裡） |
+| `src/components/` | 各段落：`Hero` 開場、`About`、`Features` 功能、`Privacy`、`Faq`、`Wish` 許願池、`Download` |
+| `src/scripts/story.ts` | 捲動敘事：開場貼紙飛進手機、功能區固定並切換 01～06、段落淡入、右下角頁碼 |
+| `src/layouts/Base.astro` | `<head>`、頁首、頁尾 |
+| `src/styles/global.css` | 配色 tokens（淺色／深色）、貼紙風格的按鈕與卡片、手機外框 |
+| `scripts/sync-policy.mjs` | 把 App repo 的隱私權政策寫成 `src/content/privacy.md`（不進版控） |
+| `public/assets/` | App 圖示 |
+| `public/assets/screens/` | 功能區的 App 畫面 |
+
+### 動畫與「減少動態效果」
+
+`story.ts` 用 `gsap.matchMedia()` 分兩種：一般情況貼紙飛入、手機放大、畫面滑入；系統開了「減少動態效果」（Android 的移除動畫、iOS 的減少動態效果）時，故事照樣跟著捲動走，但只淡入淡出，不位移、不縮放，也沒有自動播放的動畫。
+
+### App 畫面
+
+`public/assets/screens/` 的截圖用 App 的商店截圖模式（`flutter build apk --debug --dart-define=NIU_STORE_SCREENSHOTS=true`，不顯示示範模式提示）在模擬器上拍，時間設在週一 08:30 讓首頁有「上課中」，轉成 540×1200 WebP。
 
 ## 部署
 
-推到 `main` 後，GitHub Actions（`.github/workflows/pages.yml`）會部署到 GitHub Pages：**https://niu-life.app/**（`www` 會轉到主網域）。
+推到 `main` 後，GitHub Actions（`.github/workflows/pages.yml`）建置並部署到 GitHub Pages，`www` 會轉到主網域。
 
 - 網域 DNS 在 Cloudflare，紀錄要維持「僅 DNS」（灰色雲朵）：A 指向 GitHub 的 185.199.108–111.153，AAAA 指向 2606:50c0:8000–8003::153，`www` CNAME 指向 `windlessme.github.io`。開代理（橘色雲朵）會讓 GitHub 無法續簽憑證。
 - HTTPS 憑證由 GitHub 自動向 Let's Encrypt 申請與續約，Pages 設定已開「強制 HTTPS」。
 
 ## 隱私權政策
 
-政策以 `windlessme/niu-app-android` 的 `docs/android-privacy-policy.md` 為準。部署時會下載最新版重新產生 `privacy.html`，每天也會自動部署一次，所以 App 那邊改了政策，網站最晚隔天跟上；要立刻更新就到 Actions 手動執行 Deploy site。
-
-本機預覽想看最新政策時：
-
-```bash
-python3 build_privacy.py ../niu-app-android/docs/android-privacy-policy.md
-```
+政策以 `windlessme/niu-app-android` 的 `docs/android-privacy-policy.md` 為準。`npm run build` 會先同步：本機有 `../niu-app-android` 就讀它，CI 一律從 GitHub 下載。每天也會自動部署一次，所以 App 那邊改了政策，網站最晚隔天跟上；要立刻更新就到 Actions 手動執行 Deploy site。
 
 ## 商店連結
 

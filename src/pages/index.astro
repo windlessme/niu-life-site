@@ -1,0 +1,30 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/Hero.astro';
+import About from '../components/About.astro';
+import Features from '../components/Features.astro';
+import Privacy from '../components/Privacy.astro';
+import Faq from '../components/Faq.astro';
+import Wish from '../components/Wish.astro';
+import Download from '../components/Download.astro';
+---
+<Base
+  home
+  title="NIU-Life｜宜大學生的校園助手"
+  description="NIU-Life 是國立宜蘭大學學生的非官方校園助手：課表、M 園區快速點名、成績、校園信箱、請假與圖書館，iOS 與 Android 都能免費下載。"
+>
+  <Hero />
+  <About />
+  <Features />
+  <Privacy />
+  <Faq />
+  <Wish />
+  <Download />
+  <div class="pager" aria-hidden="true">
+    <span class="pager-now">1</span> / <span class="pager-total">7</span><span class="pager-name">開場</span>
+  </div>
+</Base>
+
+<script>
+  import '../scripts/story';
+</script>

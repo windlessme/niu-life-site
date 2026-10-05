@@ -1,0 +1,66 @@
+---
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  /** Home has section links and the download button; other pages link home. */
+  home?: boolean;
+}
+const { title, description, home = false } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#f2f3f7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={new URL('assets/icon.png', Astro.site)} />
+    <meta property="og:locale" content="zh_TW" />
+    <meta name="apple-itunes-app" content="app-id=6813616626" />
+    <link rel="icon" type="image/png" sizes="32x32" href={`${base}assets/favicon-32.png`} />
+    <link rel="apple-touch-icon" href={`${base}assets/apple-touch-icon.png`} />
+  </head>
+  <body class:list={{ home }}>
+    <a class="skip-link" href="#main">跳到主要內容</a>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="brand" href={base}>
+          <img src={`${base}assets/icon-192.png`} alt="" width="32" height="32" />NIU-Life
+        </a>
+        <nav class="site-nav" aria-label="主選單">
+          <a class="optional" href={`${base}#features`}>功能</a>
+          <a class="optional" href={`${base}#faq`}>常見問題</a>
+          <a class="optional" href={`${base}#wish`}>許願池</a>
+        </nav>
+        <a class="pill pill-solid header-cta" href={`${base}#download`}>下載 App</a>
+      </div>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="wrap">
+        <div class="footer-links">
+          <a href={`${base}privacy.html`}>隱私權政策</a>
+          <a href="https://forms.gle/2ok6fydShrfe6PHr5">許願池</a>
+          <a href="mailto:hi@windless.me">聯絡我們</a>
+          <a href="https://github.com/windlessme/niu-app-android">Android 原始碼</a>
+          <a href="https://github.com/qian403/NIU-app">iOS 原始碼</a>
+          <a href="https://github.com/windlessme/niu-life-site">網站原始碼</a>
+        </div>
+        <p class="disclaimer">
+          NIU-Life 為個人開發的非官方工具，與國立宜蘭大學並無隸屬、合作或授權關係。App Store 是 Apple Inc. 的服務標章；Google Play 是 Google LLC 的商標。
+        </p>
+      </div>
+    </footer>
+  </body>
+</html>
