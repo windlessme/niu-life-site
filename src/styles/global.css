@@ -95,16 +95,24 @@ img { max-width: 100%; height: auto; display: block; }
 
 /* ── Phone frame ────────────────────────────────────────────────────── */
 .phone {
-  width: 100%; aspect-ratio: 9 / 19.6;
-  border-radius: 13% / 6%;
-  background: #111317; padding: 4%;
+  /* A fixed bezel: a percentage would follow the column, not the phone,
+     and grow thick on narrow screens. */
+  --bezel: 9px;
+  --corner: 26px;
+  width: 100%;
+  padding: var(--bezel);
+  border-radius: calc(var(--corner) + var(--bezel));
+  background: #111317;
   box-shadow: 0 30px 60px rgb(10 30 70 / .25), inset 0 0 0 2px #2b2f37;
 }
+@media (max-width: 640px) { .phone { --bezel: 6px; --corner: 20px; } }
 @media (prefers-color-scheme: dark) {
   .phone { background: #22262e; box-shadow: 0 30px 60px rgb(0 0 0 / .5), 0 0 0 1px #4a505c, 0 0 80px rgb(91 156 240 / .18); }
 }
-.phone-screen { position: relative; width: 100%; height: 100%; border-radius: 10% / 4.6%; overflow: hidden; background: #f2f3f7; }
-.phone-screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+/* The screen has the screenshots' own shape (540 × 1200), so they show
+   whole; the phone wraps around it. */
+.phone-screen { position: relative; width: 100%; aspect-ratio: 540 / 1200; border-radius: var(--corner); overflow: hidden; background: #f2f3f7; }
+.phone-screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 
 /* Pinned stages fill the screen below the header; GSAP pins them. */
 .stage { position: relative; height: calc(100svh - var(--header)); overflow: hidden; }
