@@ -1,0 +1,39 @@
+name: Deploy site
+
+on:
+  push:
+    branches: [main]
+  # The privacy page follows the app's policy; rebuild daily to pick up edits.
+  schedule:
+    - cron: '17 19 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the privacy page from the app's policy
+        run: |
+          curl -fsSL -o policy.md \
+            https://raw.githubusercontent.com/windlessme/niu-app-android/main/docs/android-privacy-policy.md
+          python3 build_privacy.py policy.md
+      - name: Collect the site
+        run: |
+          mkdir _site
+          cp -r index.html privacy.html styles.css main.js assets _site/
+      - uses: actions/upload-pages-artifact@v3
+      - id: deployment
+        uses: actions/deploy-pages@v4
