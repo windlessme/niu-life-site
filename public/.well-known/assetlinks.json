@@ -1,0 +1,17 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "me.windless.niulife",
+      "sha256_cert_fingerprints": [
+        "2A:8F:A7:A7:53:A4:26:FB:93:73:92:2C:C3:A1:DB:5B:18:42:F2:AE:7C:DA:09:10:53:13:71:D9:FD:DD:94:48",
+        "28:C4:22:E3:96:A3:58:4E:80:44:95:CF:9D:4E:41:D2:44:04:24:07:50:BA:95:38:6C:2D:56:44:28:42:D6:28",
+        "FE:04:D0:AD:39:C9:C5:60:8C:C0:FB:4D:A9:38:3D:B0:2F:C6:67:53:7B:A1:5F:F5:E5:18:22:BB:D4:C2:FC:29"
+      ]
+    }
+  }
+]
