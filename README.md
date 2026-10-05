@@ -85,3 +85,7 @@ Android App（1.0.16 起）接管同樣兩種網址，裝了 App 的手機點了
 
 - App Store（iOS 版，qian403 維護）：https://apps.apple.com/tw/app/niu-life/id6813616626
 - Google Play（Android 版）：https://play.google.com/store/apps/details?id=me.windless.niulife
+
+## 授權
+
+網站原始碼以 [MIT 授權](LICENSE)公開。iOS 與 Android App 各自的授權見 [qian403/NIU-app](https://github.com/qian403/NIU-app/blob/main/LICENSE) 與 [windlessme/niu-app-android](https://github.com/windlessme/niu-app-android/blob/main/LICENSE)。

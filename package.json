@@ -19,5 +19,6 @@
     "@astrojs/check": "*",
     "@types/qrcode": "^1.5.6",
     "typescript": "^5"
-  }
+  },
+  "license": "MIT"
 }
