@@ -25,15 +25,15 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Build the privacy page from the app's policy
-        run: |
-          curl -fsSL -o policy.md \
-            https://raw.githubusercontent.com/windlessme/niu-app-android/main/docs/android-privacy-policy.md
-          python3 build_privacy.py policy.md
-      - name: Collect the site
-        run: |
-          mkdir _site
-          cp -r index.html privacy.html styles.css main.js assets _site/
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # sync-policy (run by the build) downloads the app's privacy policy.
+      - run: npm run build
       - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
       - id: deployment
         uses: actions/deploy-pages@v4

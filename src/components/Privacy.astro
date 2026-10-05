@@ -1,0 +1,28 @@
+---
+const checks = [
+  'NIU-Life 沒有自己的伺服器，校務資料只在你的手機和學校之間傳遞',
+  '帳號密碼存在手機的安全儲存，不會送到開發者手上',
+  '請假、報名、寄信都由你按下按鈕才送出，不會自動重送',
+  '程式碼以 MIT 授權公開，任何人都可以檢查',
+];
+const base = import.meta.env.BASE_URL;
+---
+<section class="section" id="privacy" data-scene="隱私" aria-labelledby="privacy-title">
+  <div class="wrap">
+    <div class="card reveal">
+      <p class="eyebrow">PRIVACY</p>
+      <h2 id="privacy-title" class="big">你的帳號，<br />只用來連學校。</h2>
+      <ul class="checks">{checks.map((c) => <li>{c}</li>)}</ul>
+      <p><a class="pill" href={`${base}privacy.html`}>閱讀完整的隱私權政策 →</a></p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .checks { list-style: none; padding: 0; margin: 0 0 28px; display: grid; gap: 14px; }
+  .checks li { display: flex; gap: 12px; align-items: flex-start; font-size: 1.05rem; }
+  .checks li::before {
+    content: ""; flex: none; width: 24px; height: 24px; margin-top: 2px; border-radius: 50%;
+    background: var(--accent-soft) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230a62d0' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 15px no-repeat;
+  }
+</style>

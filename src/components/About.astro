@@ -1,0 +1,22 @@
+---
+const systems = ['校務系統', 'M 園區', '校園信箱', '圖書館', '活動報名', '郵務查詢'];
+---
+<section class="section" id="about" data-scene="關於" aria-labelledby="about-title">
+  <div class="wrap">
+    <p class="eyebrow">ABOUT</p>
+    <h2 id="about-title" class="big">六個學校系統，<br />一個 App 整理好。</h2>
+    <p class="lead">
+      課表在校務系統、作業在 M 園區、信件在 NUMail、討論室在圖書館……NIU-Life 用你原本的學校帳號一次登入，把常用的功能放在同一個地方，介面為手機重新設計。
+    </p>
+    <ul class="systems" aria-label="整合的學校系統">
+      {systems.map((s) => <li class="reveal">{s}</li>)}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .systems { list-style: none; padding: 0; margin: 0; display: flex; flex-wrap: wrap; gap: 12px; }
+  .systems li { padding: 10px 18px; border-radius: 999px; background: var(--surface); border: 2px solid var(--ink-line); font-weight: 800; box-shadow: 3px 3px 0 var(--ink-line); }
+  .systems li:nth-child(3n + 2) { background: var(--accent-soft); color: var(--accent); }
+  .systems li:nth-child(3n) { background: var(--warn-soft); color: var(--warn); }
+</style>
