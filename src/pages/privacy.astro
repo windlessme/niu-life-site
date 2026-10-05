@@ -1,24 +1,13 @@
 ---
 import Base from '../layouts/Base.astro';
-// Synced from niu-app-android's docs by scripts/sync-policy.mjs.
+// The one policy for the iOS app, the Android app and this site.
 import { Content, frontmatter } from '../content/privacy.md';
 ---
-<Base title="隱私權政策｜NIU-Life" description="NIU-Life Android 版如何處理你的學校帳號、查詢資料與匿名使用統計。">
+<Base title="隱私權政策｜NIU-Life" description="NIU-Life iOS 版、Android 版與網站如何處理你的學校帳號、查詢資料與使用統計。">
   <article class="wrap doc">
     <h1>{frontmatter.title}</h1>
     <p class="updated">{frontmatter.updated}</p>
-    <p class="note">
-      這份政策適用於 Android 版。iOS 版由另一位開發者維護，隱私權政策請見
-      <a href="https://apps.apple.com/tw/app/niu-life/id6813616626">App Store 頁面</a>。
-    </p>
     <Content />
-    <h2 id="website">本網站（niu-life.app）</h2>
-    <p>
-      這個網站使用 Google Analytics 了解瀏覽情形，例如看了哪些頁面、從哪裡來，以及點了 App Store 或 Google Play 的下載按鈕。
-      已關閉 Google 信號與廣告個人化，不會用於廣告。Google Analytics 會使用 Cookie 與大略地區、裝置與瀏覽器等資訊，
-      依 <a href="https://policies.google.com/privacy">Google 隱私權政策</a>處理。網站沒有登入功能，不收集學校帳號或任何校務資料。
-      若不想被統計，可以使用 <a href="https://tools.google.com/dlpage/gaoptout">Google Analytics 停用瀏覽器外掛程式</a>或瀏覽器的追蹤保護。
-    </p>
   </article>
 </Base>
 
@@ -30,5 +19,4 @@ import { Content, frontmatter } from '../content/privacy.md';
   .doc :global(h3) { font-size: 1.08rem; margin: 24px 0 8px; }
   .doc :global(ul) { padding-left: 1.3em; }
   .doc :global(li) { margin: 4px 0; }
-  .note { background: var(--accent-soft); border-radius: 14px; padding: 14px 18px; margin: 0 0 24px; font-size: .95rem; }
 </style>

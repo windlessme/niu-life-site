@@ -6,10 +6,9 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "dev": "npm run sync-policy && astro dev",
-    "build": "npm run sync-policy && astro check && astro build",
-    "preview": "astro preview",
-    "sync-policy": "node scripts/sync-policy.mjs"
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview"
   },
   "dependencies": {
     "astro": "^7.3.5",
