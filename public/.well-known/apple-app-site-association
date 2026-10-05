@@ -1,0 +1,19 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "G4LXL97NF9.dev.chienniuapp"
+        ],
+        "components": [
+          {
+            "/": "/download"
+          },
+          {
+            "/": "/open/*"
+          }
+        ]
+      }
+    ]
+  }
+}
