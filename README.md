@@ -25,7 +25,7 @@ npm run preview   # 預覽建置結果
 | `src/pages/about.astro` | 關於我們 `/about`：兩位開發者（頭像在 `public/assets/team/`，從 GitHub 下載的 256×256 WebP；換頭像就換檔案） |
 | `src/pages/download.astro` | 下載連結 `/download`：手機自動前往 App Store／Google Play，電腦顯示兩個按鈕與 QR Code |
 | `src/components/StoreButtons.astro` | 商店按鈕（新分頁開啟，點擊記到 GA 的 `store_click`） |
-| `src/site.ts` | GA 評估 ID、Clarity 專案 ID |
+| `src/site.ts` | GA 評估 ID、Clarity 專案 ID、商店網址、要收錄的頁面 |
 | `src/components/` | 各段落：`Hero` 開場、`About`、`Features` 功能、`Privacy`、`Faq`、`Wish` 許願池、`Download` |
 | `src/scripts/story.ts` | 捲動敘事：開場貼紙飛進手機、功能區固定並切換 01～06、段落淡入、右下角頁碼 |
 | `src/layouts/Base.astro` | `<head>`、頁首、頁尾 |
@@ -68,6 +68,14 @@ Android App（1.0.16 起）接管同樣兩種網址，裝了 App 的手機點了
 - 頁面瀏覽：每頁自動記錄；`/download` 的瀏覽次數就是透過下載連結前往商店的次數（跳轉前會等頁面瀏覽送出，最多 1.5 秒）。
 - `store_click`：點了哪個商店按鈕（`store` = ios／android）。
 - GA 會把自訂事件暫存約 5 秒再批次送出，頁面在那之前離開就會遺失，所以商店按鈕都開新分頁，`/download` 不另送事件。
+
+## SEO
+
+- 每頁的標題、說明、canonical 與分享預覽（Open Graph、`twitter:card`）都在 `src/layouts/Base.astro`。分享預覽圖是 `public/assets/og.png`（1200×630）。
+- `noindex` 的頁面：`/download`（手機會直接跳轉到商店）、`/open/*`、404。這些頁面不輸出 canonical。
+- `sitemap.xml` 由 `src/pages/sitemap.xml.ts` 產生，列出 `src/site.ts` 的 `INDEXED_PAGES`；新增要被收錄的頁面時記得加進去。`public/robots.txt` 指向它。
+- 首頁有 JSON-LD 結構化資料（WebSite、Organization、MobileApplication），在 `src/pages/index.astro`。
+- Google Search Console 用 Cloudflare 的 DNS TXT 紀錄驗證網域，並提交 `https://niu-life.app/sitemap.xml`。
 
 ## Microsoft Clarity
 
