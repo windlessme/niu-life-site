@@ -3,7 +3,7 @@ const base = import.meta.env.BASE_URL;
 const faqs: { q: string; a: string }[] = [
   { q: 'NIU-Life 是學校官方的 App 嗎？', a: '不是。NIU-Life 由個人開發，與國立宜蘭大學沒有隸屬、合作或授權關係。校務資料、點名與報名結果請以學校官方系統為準。' },
   { q: '要怎麼登入？', a: '用你原本的國立宜蘭大學校務帳號登入就好，不需要另外註冊。App 會用同一組帳號連到 M 園區、校園信箱與圖書館。' },
-  { q: '我的帳號密碼安全嗎？', a: `帳號密碼只存在你手機的安全儲存，只用來連線學校系統，不會傳到開發者的伺服器。登出時會一併清除。詳細內容請看<a href="${base}privacy.html">隱私權政策</a>。` },
+  { q: '我的帳號密碼安全嗎？', a: `帳號密碼只存在你手機的安全儲存，只用來連線學校系統，不會傳到開發者的伺服器。登出時會一併清除。詳細內容請看<a href="${base}privacy">隱私權政策</a>。` },
   { q: '為什麼有些功能偶爾會讀不到？', a: 'App 直接連學校的系統，學校系統維護、忙碌或要求重新驗證時，對應的功能就會暫時無法使用。課表、成績等會先顯示上次的資料，稍後再試即可。' },
   { q: 'iOS 版和 Android 版有什麼不同？', a: '兩個版本功能大致相同，各自依平台設計：iOS 版有即時動態與鎖定畫面小工具，Android 版有 App 捷徑與上課中通知。兩邊分別由不同開發者維護。' },
   { q: '遇到問題要找誰？', a: 'Android 版請寄信到 <a href="mailto:hi@windless.me">hi@windless.me</a>，或到 <a href="https://github.com/windlessme/niu-app-android/issues">GitHub</a> 回報；iOS 版請到 <a href="https://github.com/qian403/NIU-app/issues">iOS 專案的 GitHub</a> 回報。請不要附上密碼或仍可使用的 QR Code。' },
