@@ -21,8 +21,7 @@ export function getStaticPaths() {
 const { name, blurb } = Astro.props;
 const base = import.meta.env.BASE_URL;
 ---
-<Base title={`在 NIU-Life 開啟${name}`} description={`這個連結會在 NIU-Life App 開啟「${name}」：${blurb}。`}>
-  <meta name="robots" content="noindex" slot="head" />
+<Base noindex title={`在 NIU-Life 開啟${/^[A-Za-z]/.test(name) ? ' ' : ''}${name}`} description={`這個連結會在 NIU-Life App 開啟「${name}」：${blurb}。`}>
   <section class="section">
     <div class="wrap">
       <div class="card open">

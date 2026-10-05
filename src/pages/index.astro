@@ -7,12 +7,46 @@ import Privacy from '../components/Privacy.astro';
 import Faq from '../components/Faq.astro';
 import Wish from '../components/Wish.astro';
 import Download from '../components/Download.astro';
+import { APP_STORE, GOOGLE_PLAY } from '../site';
+
+// Structured data: the site, who runs it, and the app it offers.
+const site = Astro.site!.href;
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    { '@type': 'WebSite', '@id': `${site}#website`, url: site, name: 'NIU-Life', inLanguage: 'zh-Hant-TW', publisher: { '@id': `${site}#org` } },
+    {
+      '@type': 'Organization',
+      '@id': `${site}#org`,
+      name: 'NIU-Life',
+      url: site,
+      logo: new URL('assets/icon.png', site).href,
+      email: 'hi@niu-life.app',
+      sameAs: ['https://github.com/qian403/NIU-app', 'https://github.com/windlessme/niu-app-android'],
+    },
+    {
+      '@type': 'MobileApplication',
+      name: 'NIU-Life',
+      description: '國立宜蘭大學學生的非官方校園助手：課表、M 園區快速點名、成績、校園信箱、請假與圖書館。',
+      url: site,
+      image: new URL('assets/icon.png', site).href,
+      operatingSystem: 'iOS, Android',
+      applicationCategory: 'EducationalApplication',
+      inLanguage: 'zh-Hant-TW',
+      offers: { '@type': 'Offer', price: 0, priceCurrency: 'TWD' },
+      installUrl: [APP_STORE, GOOGLE_PLAY],
+      sameAs: [APP_STORE, GOOGLE_PLAY],
+      publisher: { '@id': `${site}#org` },
+    },
+  ],
+};
 ---
 <Base
   home
   title="NIU-Life｜宜大學生的校園助手"
   description="NIU-Life 是國立宜蘭大學學生的非官方校園助手：課表、M 園區快速點名、成績、校園信箱、請假與圖書館，iOS 與 Android 都能免費下載。"
 >
+  <script type="application/ld+json" slot="head" set:html={JSON.stringify(structuredData)} />
   <Hero />
   <About />
   <Features />

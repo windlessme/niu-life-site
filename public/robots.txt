@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://niu-life.app/sitemap.xml

@@ -2,8 +2,7 @@
 // App Store and Google Play buttons. Clicks are counted in GA (stores open
 // in a new tab so GA's batched event can still leave); on phones the
 // visitor's own store moves first and is highlighted.
-export const APP_STORE = 'https://apps.apple.com/tw/app/niu-life/id6813616626';
-export const GOOGLE_PLAY = 'https://play.google.com/store/apps/details?id=me.windless.niulife';
+import { APP_STORE, GOOGLE_PLAY } from '../site';
 ---
 <div class="stores" data-stores>
   <a class="store" data-platform="ios" href={APP_STORE} target="_blank" rel="noopener">
