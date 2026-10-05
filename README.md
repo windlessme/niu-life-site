@@ -47,11 +47,13 @@ npm run preview   # 預覽建置結果
 - iPhone／iPad 直接前往 App Store，Android 直接前往 Google Play，電腦顯示按鈕與這個網址的 QR Code。
 - 可以加 `utm_*` 參數區分來源，例如 `https://niu-life.app/download?utm_source=poster&utm_medium=qr&utm_campaign=freshman`。GA 會依參數歸類這次瀏覽；Android 的參數也會帶進 Google Play 的安裝來源（Play Console → 使用者取得）。App Store 不支援這種參數。
 
-## App Links（/download、/open/…）
+## App Links 與 Universal Links（/download、/open/…）
 
 `public/.well-known/assetlinks.json` 是 Play Console 產生的 Digital Asset Links，證明 niu-life.app 屬於 `me.windless.niulife`（憑證是 Google 保管的 App 簽署金鑰，所以只有從 Play 安裝的 App 會通過驗證）。
 
-Android App（1.0.16 起）接管兩種網址，裝了 App 的手機點了會直接開 App：
+`public/.well-known/apple-app-site-association` 是 iOS 的 Universal Links 設定，指定 `G4LXL97NF9.dev.chienniuapp` 接管 `/download` 與 `/open/*`。iOS App 還要在 entitlements 加上 `applinks:niu-life.app`，並處理開進來的網址（iOS 維護者負責）。GitHub Pages 會把這個沒有副檔名的檔案以 `application/octet-stream` 送出，Apple 的 CDN 仍可讀取；確認方式：`https://app-site-association.cdn-apple.com/a/v1/niu-life.app`（Apple 會快取，更新後可能要一兩天才反映）。
+
+Android App（1.0.16 起）接管同樣兩種網址，裝了 App 的手機點了會直接開 App：
 
 - `https://niu-life.app/download`：開 App；沒裝的人照常前往商店。
 - `https://niu-life.app/open/<功能>`：開 App 裡的功能，`<功能>` 是 `schedule`（課表）、`attendance`（快速點名）、`library`（入館碼）、`mail`（校園信箱）、`moodle`（M 園區）、`calendar`（行事曆）。沒裝 App 或用 iPhone 的人會看到 `src/pages/open/[feature].astro` 的說明頁與下載按鈕。新增功能時，這裡和 App 的 `lib/app/deep_links.dart` 要一起改。
