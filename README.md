@@ -22,6 +22,7 @@ npm run preview   # 預覽建置結果
 | `src/pages/index.astro` | 首頁，依序組合 7 個段落 |
 | `src/pages/privacy.astro` | 隱私權政策頁，網址 `/privacy`（`/privacy.html` 也可以） |
 | `src/content/privacy.md` | **iOS 版、Android 版與網站共用的隱私權政策**，唯一來源 |
+| `src/pages/about.astro` | 關於我們 `/about`：兩位開發者（頭像在 `public/assets/team/`，從 GitHub 下載的 256×256 WebP；換頭像就換檔案） |
 | `src/pages/download.astro` | 下載連結 `/download`：手機自動前往 App Store／Google Play，電腦顯示兩個按鈕與 QR Code |
 | `src/components/StoreButtons.astro` | 商店按鈕（新分頁開啟，點擊記到 GA 的 `store_click`） |
 | `src/site.ts` | GA 評估 ID |

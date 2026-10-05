@@ -1,0 +1,85 @@
+---
+import Base from '../layouts/Base.astro';
+
+// Avatars are copied from GitHub into public/assets/team/ (256 × 256).
+const team = [
+  {
+    name: 'CHIEN',
+    login: 'qian403',
+    role: 'iOS 版開發者',
+    about: 'NIU-Life 的原始作者。以 SwiftUI 開發 iOS 版，包含課表即時動態、鎖定畫面小工具與 M 園區快速點名。',
+    links: [
+      { label: 'GitHub', href: 'https://github.com/qian403' },
+      { label: '網站', href: 'https://blog.chien.dev' },
+    ],
+  },
+  {
+    name: 'Windless',
+    login: 'windlessme',
+    role: 'Android 版開發者',
+    about: '參考 iOS 版，以 Flutter 開發 Android 版，並維護 niu-life.app 網站。',
+    links: [{ label: 'GitHub', href: 'https://github.com/windlessme' }],
+  },
+];
+const base = import.meta.env.BASE_URL;
+---
+<Base title="關於我們｜NIU-Life" description="NIU-Life 是宜大學生的非官方校園助手，由兩位開發者以個人身分開發與維護。">
+  <section class="section">
+    <div class="wrap about">
+      <p class="eyebrow">ABOUT US</p>
+      <h1 class="big">關於我們</h1>
+      <p class="lead">
+        NIU-Life 把分散在各個學校系統的常用功能整理進一個 App，讓宜大的校園生活少一點麻煩。我們以個人身分開發與維護，與國立宜蘭大學沒有隸屬、合作或授權關係，程式碼以 MIT 授權公開。
+      </p>
+
+      <h2 class="title">開發者</h2>
+      <ul class="team">
+        {team.map((m) => (
+          <li class="card member">
+            <img src={`${base}assets/team/${m.login}.webp`} width="112" height="112" alt="" loading="lazy" />
+            <div>
+              <h3>{m.name}</h3>
+              <p class="role">{m.role} · @{m.login}</p>
+              <p>{m.about}</p>
+              <p class="links">
+                {m.links.map((l) => <a class="pill" href={l.href}>{l.label}</a>)}
+              </p>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <h2 class="title">聯絡我們</h2>
+      <div class="card contact">
+        <p>問題、建議或合作，都歡迎來信 <a href="mailto:hi@niu-life.app">hi@niu-life.app</a>。想要新功能，也可以丟進<a href="https://forms.gle/2ok6fydShrfe6PHr5">許願池</a>。</p>
+        <p class="links">
+          <a class="pill" href="https://github.com/qian403/NIU-app">iOS 原始碼</a>
+          <a class="pill" href="https://github.com/windlessme/niu-app-android">Android 原始碼</a>
+          <a class="pill" href="https://github.com/windlessme/niu-life-site">網站原始碼</a>
+        </p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .about { max-width: 860px; }
+  .title { font-size: clamp(1.4rem, 3vw, 1.9rem); margin: 56px 0 20px; }
+  .team { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .member { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: start; padding: 28px; }
+  .member img { width: 112px; height: 112px; border-radius: 50%; border: 2px solid var(--ink-line); object-fit: cover; background: var(--bg); }
+  .member h3 { margin: 4px 0 2px; font-size: 1.35rem; }
+  .role { margin: 0 0 10px; color: var(--accent); font-weight: 700; font-size: .95rem; }
+  .member p { margin: 0 0 12px; }
+  .links { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 0; }
+  .links .pill { font-size: .85rem; padding: 6px 14px; }
+  .contact { padding: 28px; }
+  .contact p { margin: 0; }
+  @media (max-width: 760px) {
+    .team { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 420px) {
+    .member { grid-template-columns: 1fr; justify-items: start; }
+    .member img { width: 88px; height: 88px; }
+  }
+</style>
