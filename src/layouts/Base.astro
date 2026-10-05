@@ -5,7 +5,7 @@ import { GA_ID } from '../site';
 interface Props {
   title: string;
   description: string;
-  /** Home has section links and the download button; other pages link home. */
+  /** Home has section links; the download button always goes to /download. */
   home?: boolean;
 }
 const { title, description, home = false } = Astro.props;
@@ -53,7 +53,7 @@ const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/i
           <a class="optional" href={`${base}#faq`}>常見問題</a>
           <a class="optional" href={`${base}#wish`}>許願池</a>
         </nav>
-        <a class="pill pill-solid header-cta" href={`${base}#download`}>下載 App</a>
+        <a class="pill pill-solid header-cta" href={`${base}download`}>下載 App</a>
       </div>
     </header>
     <main id="main">
