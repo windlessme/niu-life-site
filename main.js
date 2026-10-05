@@ -1,6 +1,7 @@
 // Scroll storytelling for the home page. Each pinned scene gets --p, its
 // progress from 0 to 1 while its stage is stuck to the screen; CSS and the
-// code below turn that into movement. With reduced motion nothing moves.
+// code below turn that into movement. With reduced motion the story still
+// follows the scroll, but troubles fade where they are instead of flying.
 (() => {
   const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -19,7 +20,7 @@
 
   // Plain sections fade in once they come into view.
   const reveals = document.querySelectorAll('.reveal');
-  if (still || !('IntersectionObserver' in window)) {
+  if (!('IntersectionObserver' in window)) {
     reveals.forEach((el) => el.classList.add('seen'));
   } else {
     const seen = new IntersectionObserver((entries) => {
@@ -56,12 +57,6 @@
   };
   setStep(0);
 
-  if (still) {
-    updatePager();
-    addEventListener('scroll', updatePager, { passive: true });
-    return;
-  }
-
   const clamp = (v) => Math.min(1, Math.max(0, v));
   const ease = (t) => 1 - Math.pow(1 - t, 3);
   const progress = (el) => {
@@ -82,6 +77,7 @@
     hero.classList.toggle('done', p >= 0.98 || r.bottom < innerHeight * 0.5);
     for (const s of stickers) {
       const t = ease(clamp((p - Number(s.dataset.delay)) / 0.4));
+      if (still) { s.style.opacity = String(1 - t); continue; }
       s.style.transform =
         `translate(-50%, -50%) translate(calc(var(--dx) * ${1 - t}), calc(var(--dy) * ${1 - t}))` +
         ` rotate(calc(var(--r) * ${1 - t})) scale(${1 - 0.85 * t})`;
@@ -105,7 +101,7 @@
       const r = features.getBoundingClientRect();
       const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--header')) || 64;
       const travel = r.height - (innerHeight - header);
-      scrollTo({ top: scrollY + r.top - header + travel * ((i + 0.5) / steps.length), behavior: 'smooth' });
+      scrollTo({ top: scrollY + r.top - header + travel * ((i + 0.5) / steps.length), behavior: still ? 'instant' : 'smooth' });
     });
   });
 })();

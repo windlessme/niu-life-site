@@ -271,22 +271,16 @@ img { max-width: 100%; height: auto; display: block; }
 
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
 
-/* Reduced motion: no pinning, everything laid out and visible. */
+/* Reduced motion: the story still follows the scroll, but nothing slides,
+   flies or scales; things only fade, and nothing animates by itself. */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .hero, .features { height: auto; }
-  [data-pin] .stage { position: relative; top: 0; height: auto; overflow: visible; }
-  .hero .stage { min-height: 760px; }
-  .hero { --p: .7; }
-  .hero-copy { opacity: 1; transform: none; }
-  .hero-after { display: none; }
-  .features-phone, .features-phone .phone { flex: none; height: auto; }
-  .features-phone .phone { width: min(260px, 70vw); margin-inline: auto; }
-  .skip-anim, .scroll-hint, .pager { display: none; }
-  .features .stage { padding-block: 72px; }
-  .step:not(.active) ul, .step:not(.active) { display: block; }
-  .step { color: var(--text); }
-  .features-phone img[data-step="0"] { opacity: 1; }
-  .reveal { opacity: 1; transform: none; transition: none; }
-  .pill, .store, .wish-star, .scroll-hint { transition: none; animation: none; }
+  .hero-copy { transform: none; }
+  .hero-phone { transform: translate(-50%, -50%); }
+  .hero-after { transform: none; }
+  .features-phone img { transform: none; }
+  .reveal { transform: none; }
+  .scroll-hint, .wish-star { animation: none; }
+  .pill, .store, .step, .step ul { transition: none; }
+  .pill:hover, .store:hover { transform: none; }
 }
