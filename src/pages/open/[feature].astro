@@ -1,0 +1,48 @@
+---
+// Links that open a place in the app. On Android with the app installed,
+// App Links open the app directly and this page never shows; everyone
+// else lands here and is offered the app.
+import Base from '../../layouts/Base.astro';
+import StoreButtons from '../../components/StoreButtons.astro';
+
+export function getStaticPaths() {
+  // Keep in step with campusDeepLink in niu-app-android's lib/app/deep_links.dart.
+  const features = {
+    schedule: { name: '課表', blurb: '查看今天的課與整週課表' },
+    attendance: { name: '快速點名', blurb: '掃描課堂 QR Code 點名' },
+    library: { name: '圖書館入館碼', blurb: '入館 QR Code 與借書條碼' },
+    mail: { name: '校園信箱', blurb: '收信、寫信與附件' },
+    moodle: { name: 'M 園區', blurb: '課程、公告、作業與成績' },
+    calendar: { name: '行事曆', blurb: '學期重要日程' },
+  };
+  return Object.entries(features).map(([feature, info]) => ({ params: { feature }, props: info }));
+}
+
+const { name, blurb } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+<Base title={`在 NIU-Life 開啟${name}`} description={`這個連結會在 NIU-Life App 開啟「${name}」：${blurb}。`}>
+  <meta name="robots" content="noindex" slot="head" />
+  <section class="section">
+    <div class="wrap">
+      <div class="card open">
+        <img class="app-icon" src={`${base}assets/icon-192.png`} width="88" height="88" alt="" />
+        <p class="eyebrow">在 NIU-Life 開啟</p>
+        <h1 class="big">{name}</h1>
+        <p class="lead">這個連結會在 NIU-Life App 裡開啟「{name}」：{blurb}。</p>
+        <p class="lead">還沒安裝的話，先下載 NIU-Life：</p>
+        <StoreButtons />
+        <p class="hint">
+          已經安裝了？Android 版 1.0.16 以上點連結會直接開 App；如果還是看到這頁，請把 App 更新到最新版。iPhone 版目前不支援從網址開啟。
+        </p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .open { text-align: center; max-width: 640px; margin-inline: auto; }
+  .lead { margin-inline: auto; margin-bottom: 12px; }
+  .app-icon { width: 88px; height: 88px; border-radius: 22px; margin: 0 auto 20px; background: #f8f8f8; border: 2px solid var(--ink-line); }
+  .hint { margin: 28px auto 0; max-width: 32em; font-size: .9rem; color: var(--muted); }
+</style>
