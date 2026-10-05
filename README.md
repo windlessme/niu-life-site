@@ -11,7 +11,7 @@ NIU-Life 的官網 **https://niu-life.app/**：捲動敘事的首頁、iOS／And
 ```bash
 npm install
 npm run dev       # http://localhost:4321
-npm run build     # 同步隱私權政策 → astro check → dist/
+npm run build     # astro check → dist/
 npm run preview   # 預覽建置結果
 ```
 
@@ -20,7 +20,8 @@ npm run preview   # 預覽建置結果
 | 位置 | 用途 |
 |---|---|
 | `src/pages/index.astro` | 首頁，依序組合 7 個段落 |
-| `src/pages/privacy.astro` | 隱私權政策，網址 `/privacy`（`/privacy.html` 也可以）；最後一節是網站本身的 GA 說明 |
+| `src/pages/privacy.astro` | 隱私權政策頁，網址 `/privacy`（`/privacy.html` 也可以） |
+| `src/content/privacy.md` | **iOS 版、Android 版與網站共用的隱私權政策**，唯一來源 |
 | `src/pages/download.astro` | 下載連結 `/download`：手機自動前往 App Store／Google Play，電腦顯示兩個按鈕與 QR Code |
 | `src/components/StoreButtons.astro` | 商店按鈕（新分頁開啟，點擊記到 GA 的 `store_click`） |
 | `src/site.ts` | GA 評估 ID |
@@ -28,7 +29,6 @@ npm run preview   # 預覽建置結果
 | `src/scripts/story.ts` | 捲動敘事：開場貼紙飛進手機、功能區固定並切換 01～06、段落淡入、右下角頁碼 |
 | `src/layouts/Base.astro` | `<head>`、頁首、頁尾 |
 | `src/styles/global.css` | 配色 tokens（淺色／深色）、貼紙風格的按鈕與卡片、手機外框 |
-| `scripts/sync-policy.mjs` | 把 App repo 的隱私權政策寫成 `src/content/privacy.md`（不進版控） |
 | `public/assets/` | App 圖示 |
 | `public/assets/screens/` | 功能區的 App 畫面 |
 
@@ -73,9 +73,11 @@ Android App（1.0.16 起）接管兩種網址，裝了 App 的手機點了會直
 - 網域 DNS 在 Cloudflare，紀錄要維持「僅 DNS」（灰色雲朵）：A 指向 GitHub 的 185.199.108–111.153，AAAA 指向 2606:50c0:8000–8003::153，`www` CNAME 指向 `windlessme.github.io`。開代理（橘色雲朵）會讓 GitHub 無法續簽憑證。
 - HTTPS 憑證由 GitHub 自動向 Let's Encrypt 申請與續約，Pages 設定已開「強制 HTTPS」。
 
-## 隱私權政策
+## 隱私權政策與聯絡窗口
 
-政策以 `windlessme/niu-app-android` 的 `docs/android-privacy-policy.md` 為準。`npm run build` 會先同步：本機有 `../niu-app-android` 就讀它，CI 一律從 GitHub 下載。每天也會自動部署一次，所以 App 那邊改了政策，網站最晚隔天跟上；要立刻更新就到 Actions 手動執行 Deploy site。
+- **隱私權政策**：iOS 版、Android 版與網站共用一份，唯一來源是 `src/content/privacy.md`，公開網址 **https://niu-life.app/privacy**。只有單一平台的做法用「iOS 版」「Android 版」標示。修改後更新 frontmatter 的 `updated`，推到 `main` 就會部署。Android App 內的隱私權畫面是摘要，政策有實質變動時一起改（niu-app-android 的 `lib/features/settings/privacy_screen.dart`）；iOS 版的對應內容由 iOS 維護者處理。
+- **聯絡信箱**：兩個平台共用 **hi@niu-life.app**（Cloudflare Email Routing）。
+- **問題回報表單**：https://forms.gle/2ok6fydShrfe6PHr5（網站許願池與 Android App 的「回報問題」共用）。
 
 ## 商店連結
 

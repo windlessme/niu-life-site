@@ -3,9 +3,6 @@ name: Deploy site
 on:
   push:
     branches: [main]
-  # The privacy page follows the app's policy; rebuild daily to pick up edits.
-  schedule:
-    - cron: '17 19 * * *'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +27,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      # sync-policy (run by the build) downloads the app's privacy policy.
       - run: npm run build
       - uses: actions/upload-pages-artifact@v3
         with:
