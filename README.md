@@ -24,7 +24,10 @@ python3 -m http.server 8090
 
 ## 部署
 
-推到 `main` 後，GitHub Actions（`.github/workflows/pages.yml`）會部署到 GitHub Pages。網址：https://niu-life.app/（DNS 設定好之前是 https://windlessme.github.io/niu-life-site/）。
+推到 `main` 後，GitHub Actions（`.github/workflows/pages.yml`）會部署到 GitHub Pages：**https://niu-life.app/**（`www` 會轉到主網域）。
+
+- 網域 DNS 在 Cloudflare，紀錄要維持「僅 DNS」（灰色雲朵）：A 指向 GitHub 的 185.199.108–111.153，AAAA 指向 2606:50c0:8000–8003::153，`www` CNAME 指向 `windlessme.github.io`。開代理（橘色雲朵）會讓 GitHub 無法續簽憑證。
+- HTTPS 憑證由 GitHub 自動向 Let's Encrypt 申請與續約，Pages 設定已開「強制 HTTPS」。
 
 ## 隱私權政策
 
