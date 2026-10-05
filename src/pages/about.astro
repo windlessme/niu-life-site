@@ -38,8 +38,8 @@ const base = import.meta.env.BASE_URL;
           <li class="card member">
             <img src={`${base}assets/team/${m.login}.webp`} width="112" height="112" alt="" loading="lazy" />
             <div>
-              <h3>{m.name}</h3>
-              <p class="role">{m.role} · @{m.login}</p>
+              <h3>{m.name} <span class="handle">@{m.login}</span></h3>
+              <p class="role">{m.role}</p>
               <p>{m.about}</p>
               <p class="links">
                 {m.links.map((l) => <a class="pill" href={l.href}>{l.label}</a>)}
@@ -69,12 +69,15 @@ const base = import.meta.env.BASE_URL;
   .member { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: start; padding: 28px; }
   .member img { width: 112px; height: 112px; border-radius: 50%; border: 2px solid var(--ink-line); object-fit: cover; background: var(--bg); }
   .member h3 { margin: 4px 0 2px; font-size: 1.35rem; }
+  /* The handle never splits; when the line is short it moves down whole. */
+  .handle { display: inline-block; white-space: nowrap; font-size: .9rem; font-weight: 600; color: var(--muted); }
   .role { margin: 0 0 10px; color: var(--accent); font-weight: 700; font-size: .95rem; }
   .member p { margin: 0 0 12px; }
   .links { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 0; }
   .links .pill { font-size: .85rem; padding: 6px 14px; }
   .contact { padding: 28px; }
-  .contact p { margin: 0; }
+  .contact p { margin: 0; line-height: 1.9; }
+  .contact .links { margin-top: 20px; gap: 12px 10px; }
   @media (max-width: 760px) {
     .team { grid-template-columns: 1fr; }
   }
