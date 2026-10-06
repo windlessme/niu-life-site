@@ -39,7 +39,7 @@ npm run preview   # 預覽建置結果
 
 ### App 畫面
 
-`public/assets/screens/` 的截圖用 App 的商店截圖模式（`flutter build apk --debug --dart-define=NIU_STORE_SCREENSHOTS=true`，不顯示示範模式提示）在模擬器上拍，時間設在週一 08:30 讓首頁有「上課中」，轉成 540×1200 WebP。
+`public/assets/screens/` 的截圖用 App 的商店截圖模式（`flutter build apk --debug --dart-define=NIU_STORE_SCREENSHOTS=true`，不顯示示範模式提示）在模擬器上拍，時間設在週一 08:30 讓首頁有「上課中」，轉成 540×1200 WebP，另外縮一份 360 寬的 `<名稱>-360.webp` 給手機用（`srcset`），換截圖時兩份都要換。
 
 ## 下載連結 /download
 
@@ -63,7 +63,7 @@ Android App（1.0.16 起）接管同樣兩種網址，裝了 App 的手機點了
 
 ## Google Analytics
 
-評估 ID `G-TQSN4NFDVD`（資料串流 16044768167），在 `src/layouts/Base.astro` 載入，已關閉 Google 信號與廣告個人化。
+評估 ID `G-TQSN4NFDVD`（資料串流 16044768167），在 `src/layouts/Base.astro` 載入，等頁面載入完、瀏覽器閒下來才下載（`/download` 例外，立即載入），已關閉 Google 信號與廣告個人化。
 
 - 頁面瀏覽：每頁自動記錄；`/download` 的瀏覽次數就是透過下載連結前往商店的次數（跳轉前會等頁面瀏覽送出，最多 1.5 秒）。
 - `store_click`：點了哪個商店按鈕（`store` = ios／android）。
@@ -80,7 +80,7 @@ Android App（1.0.16 起）接管同樣兩種網址，裝了 App 的手機點了
 
 ## Microsoft Clarity
 
-專案 ID `yszvcoth95`，在 `src/layouts/Base.astro` 載入，記錄網站的熱圖與瀏覽過程重播（只有網站，App 沒有）。隱私權政策的「第三方服務」已列出。
+專案 ID `yszvcoth95`，在 `src/layouts/Base.astro` 載入（和 GA 一樣等頁面載入完、瀏覽器閒下來才下載，避免拖慢首次顯示；只有 `/download` 立即載入，才能在跳轉前送出瀏覽），記錄網站的熱圖與瀏覽過程重播（只有網站，App 沒有）。隱私權政策的「第三方服務」已列出。
 
 ## 部署
 
