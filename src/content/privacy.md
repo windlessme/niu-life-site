@@ -1,6 +1,6 @@
 ---
 title: "NIU-Life 隱私權政策"
-updated: "更新日期：2026-10-05"
+updated: "更新日期：2026-10-06"
 ---
 NIU-Life（以下稱「我們」）重視你的隱私。這份政策說明 NIU-Life 的 iOS App、Android App 與網站 niu-life.app（以下合稱「本服務」）如何收集、使用與保護你的資料。使用本服務，即表示你同意這份政策。
 
@@ -55,7 +55,7 @@ App 只在需要時請求權限，例如用相機掃描點名 QR Code、用通�
 ## 你的選擇
 
 - **登出**：刪除裝置上的帳號與暫存資料。
-- **使用統計**：Android 版可在「設定 → 分享匿名使用統計」關閉；網站可使用瀏覽器的追蹤保護、[Google Analytics 停用外掛程式](https://tools.google.com/dlpage/gaoptout)，或封鎖 clarity.ms。
+- **使用統計**：網站可使用瀏覽器的追蹤保護、[Google Analytics 停用外掛程式](https://tools.google.com/dlpage/gaoptout)，或封鎖 clarity.ms。
 - **權限**：在系統設定中隨時調整。
 
 學校帳號與學校保存的紀錄由學校管理，相關更正或刪除請洽學校。
