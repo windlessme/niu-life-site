@@ -68,10 +68,13 @@ const show = (index: number) => {
   gsap.fromTo(screens[index], { yPercent: down ? 6 : -6 }, { yPercent: 0, duration: 0.45, ease: 'power2.out' });
   gsap.fromTo('.screen .phone', { rotate: down ? -1.5 : 1.5 }, { rotate: 0, duration: 0.6, ease: 'back.out(3)' });
 };
+// Scroll per step, in % of the viewport height. A swipe on a phone covers
+// far less of a step than a wheel or trackpad does, so phones get less.
+const stepLength = () => (matchMedia('(max-width: 820px)').matches ? 35 : 70);
 const tour = ScrollTrigger.create({
   trigger: features,
   start: () => `top ${header()}`,
-  end: () => `+=${steps.length * 70}%`,
+  end: () => `+=${steps.length * stepLength()}%`,
   pin: $('.stage', features),
   invalidateOnRefresh: true,
   onUpdate: (self) => {
