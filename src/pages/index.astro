@@ -11,10 +11,12 @@ import { APP_STORE, GOOGLE_PLAY } from '../site';
 
 // Structured data: the site, who runs it, and the app it offers.
 const site = Astro.site!.href;
+// Other names people search for the app by.
+const alternateName = ['宜大 App', '宜大校園通', 'NIU 宜大學生 App', '宜大 Life', 'NIU Life'];
 const structuredData = {
   '@context': 'https://schema.org',
   '@graph': [
-    { '@type': 'WebSite', '@id': `${site}#website`, url: site, name: 'NIU-Life', inLanguage: 'zh-Hant-TW', publisher: { '@id': `${site}#org` } },
+    { '@type': 'WebSite', '@id': `${site}#website`, url: site, name: 'NIU-Life', alternateName, inLanguage: 'zh-Hant-TW', publisher: { '@id': `${site}#org` } },
     {
       '@type': 'Organization',
       '@id': `${site}#org`,
@@ -27,6 +29,7 @@ const structuredData = {
     {
       '@type': 'MobileApplication',
       name: 'NIU-Life',
+      alternateName,
       description: '國立宜蘭大學學生的非官方校園助手：課表、M 園區快速點名、成績、校園信箱、請假與圖書館。',
       url: site,
       image: new URL('assets/icon.png', site).href,
@@ -43,9 +46,10 @@ const structuredData = {
 ---
 <Base
   home
-  title="NIU-Life｜宜大學生的校園助手"
-  description="NIU-Life 是國立宜蘭大學學生的非官方校園助手：課表、M 園區快速點名、成績、校園信箱、請假與圖書館，iOS 與 Android 都能免費下載。"
+  title="NIU-Life｜宜大 App，宜蘭大學學生的校園助手"
+  description="NIU-Life（宜大 Life）是國立宜蘭大學學生的非官方宜大 App 與校園助手：課表、M 園區快速點名、成績、校園信箱、請假與圖書館，iOS 與 Android 都能免費下載。"
 >
+  <meta name="keywords" content={['NIU-Life', ...alternateName, '宜蘭大學 App', '國立宜蘭大學'].join(',')} slot="head" />
   <script type="application/ld+json" slot="head" set:html={JSON.stringify(structuredData)} />
   <Hero />
   <About />

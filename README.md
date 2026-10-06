@@ -75,6 +75,7 @@ Android App（1.0.16 起）接管同樣兩種網址，裝了 App 的手機點了
 - `noindex` 的頁面：`/download`（手機會直接跳轉到商店）、`/open/*`、404。這些頁面不輸出 canonical。
 - `sitemap.xml` 由 `src/pages/sitemap.xml.ts` 產生，列出 `src/site.ts` 的 `INDEXED_PAGES`；新增要被收錄的頁面時記得加進去。`public/robots.txt` 指向它。
 - 首頁有 JSON-LD 結構化資料（WebSite、Organization、MobileApplication），在 `src/pages/index.astro`。
+- 大家搜尋時用的其他名稱（宜大 App、宜大校園通、NIU 宜大學生 App、宜大 Life）寫在首頁的標題與說明、FAQ 第一題，以及結構化資料的 `alternateName`。英文大小寫不影響搜尋，`宜大app` 和 `宜大APP` 都會對到。
 - Google Search Console 用 Cloudflare 的 DNS TXT 紀錄驗證網域，並提交 `https://niu-life.app/sitemap.xml`。
 
 ## Microsoft Clarity
