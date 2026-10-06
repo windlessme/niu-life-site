@@ -1,6 +1,6 @@
 # NIU-Life 網站
 
-NIU-Life 的官網 **https://niu-life.app/**：捲動敘事的首頁、iOS／Android 下載入口、常見問題、許願池與 Android 隱私權政策。
+NIU-Life 的官網 **https://niu-life.app/**：捲動敘事的首頁、iOS／Android 下載入口、常見問題、許願池、關於我們，以及 iOS 版、Android 版與網站共用的隱私權政策。
 
 用 [Astro](https://astro.build/) 產生純靜態網站，捲動動畫用 [GSAP ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/)，TypeScript 撰寫。
 
