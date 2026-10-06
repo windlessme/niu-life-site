@@ -1,105 +1,91 @@
 # NIU-Life 網站
 
-NIU-Life 的官網 **https://niu-life.app/**：捲動敘事的首頁、iOS／Android 下載入口、常見問題、許願池、關於我們，以及 iOS 版、Android 版與網站共用的隱私權政策。
+[NIU-Life](https://niu-life.app/) 是國立宜蘭大學學生的非官方校園助手 App，有 iOS 與 Android 版。這個 repo 是它的官網：捲動敘事的首頁、下載入口、常見問題、許願池、關於我們，以及 App 與網站共用的隱私權政策。
 
-用 [Astro](https://astro.build/) 產生純靜態網站，捲動動畫用 [GSAP ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/)，TypeScript 撰寫。
+> NIU-Life 為個人開發的非官方工具，與國立宜蘭大學並無隸屬、合作或授權關係。
 
-## 開發
+- 網站：https://niu-life.app/
+- iOS App：[App Store](https://apps.apple.com/tw/app/niu-life/id6813616626)・原始碼 [qian403/NIU-app](https://github.com/qian403/NIU-app)
+- Android App：[Google Play](https://play.google.com/store/apps/details?id=me.windless.niulife)・原始碼 [windlessme/niu-app-android](https://github.com/windlessme/niu-app-android)
 
-使用 `.nvmrc` 指定的 Node 22 以上：
+## 技術
+
+- [Astro](https://astro.build/) 產生純靜態網站，TypeScript 撰寫
+- [GSAP ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/) 製作捲動動畫
+- 部署在 GitHub Pages
+
+## 本機開發
+
+需要 Node 22.12 以上（見 `.nvmrc`）：
 
 ```bash
 npm install
 npm run dev       # http://localhost:4321
-npm run build     # astro check → dist/
+npm run build     # 型別檢查（astro check）後輸出到 dist/
 npm run preview   # 預覽建置結果
 ```
 
-## 結構
+## 專案結構
 
-| 位置 | 用途 |
+```
+src/
+├── pages/            # 每個檔案是一個網址
+│   ├── index.astro         首頁，組合 components/ 的各段落
+│   ├── about.astro         /about 關於我們
+│   ├── privacy.astro       /privacy 隱私權政策
+│   ├── download.astro      /download 依裝置前往商店
+│   ├── open/[feature].astro  /open/<功能> 沒裝 App 時的說明頁
+│   ├── sitemap.xml.ts
+│   └── 404.astro
+├── components/       # 首頁段落（Hero、About、Features、Privacy、Faq、Wish、Download）與商店按鈕
+├── content/privacy.md  # 隱私權政策內文
+├── layouts/Base.astro  # <head>、頁首、頁尾
+├── scripts/story.ts    # 首頁的捲動動畫
+├── styles/global.css   # 配色（淺色／深色）與共用樣式
+└── site.ts             # 商店網址、分析工具 ID、要被搜尋引擎收錄的頁面
+public/
+├── assets/           # 圖示、分享預覽圖、App 畫面、開發者頭像
+└── .well-known/      # Android App Links 與 iOS Universal Links 設定
+```
+
+## 常見修改
+
+- **隱私權政策**：iOS 版、Android 版與網站共用 `src/content/privacy.md` 這一份。修改後請更新 frontmatter 的 `updated` 日期。
+- **App 畫面**：`public/assets/screens/` 每張畫面有兩種尺寸，540×1200 的 `<名稱>.webp` 和給手機用的 360 寬 `<名稱>-360.webp`，換圖時兩份都要換。
+- **新增頁面**：在 `src/pages/` 加檔案；要讓搜尋引擎收錄的話，把路徑加進 `src/site.ts` 的 `INDEXED_PAGES`，`sitemap.xml` 會自動列出。
+- **頁面標題與分享預覽**：由各頁傳給 `Base.astro` 的 `title` 與 `description` 產生；首頁的結構化資料（JSON-LD）在 `src/pages/index.astro`。
+
+## 下載連結與 App 連結
+
+**`https://niu-life.app/download`** 是對外宣傳用的單一下載連結：iPhone／iPad 前往 App Store，Android 前往 Google Play，電腦則顯示商店按鈕與 QR Code。可以加 `utm_*` 參數標示來源，例如 `?utm_source=poster&utm_medium=qr`。
+
+已安裝 App 的手機開啟下列網址時會直接進入 App：
+
+| 網址 | 開啟 |
 |---|---|
-| `src/pages/index.astro` | 首頁，依序組合 7 個段落 |
-| `src/pages/privacy.astro` | 隱私權政策頁，網址 `/privacy`（`/privacy.html` 也可以） |
-| `src/content/privacy.md` | **iOS 版、Android 版與網站共用的隱私權政策**，唯一來源 |
-| `src/pages/about.astro` | 關於我們 `/about`：兩位開發者（頭像在 `public/assets/team/`，從 GitHub 下載的 256×256 WebP；換頭像就換檔案） |
-| `src/pages/download.astro` | 下載連結 `/download`：手機自動前往 App Store／Google Play，電腦顯示兩個按鈕與 QR Code |
-| `src/components/StoreButtons.astro` | 商店按鈕（新分頁開啟，點擊記到 GA 的 `store_click`） |
-| `src/site.ts` | GA 評估 ID、Clarity 專案 ID、商店網址、要收錄的頁面 |
-| `src/components/` | 各段落：`Hero` 開場、`About`、`Features` 功能、`Privacy`、`Faq`、`Wish` 許願池、`Download` |
-| `src/scripts/story.ts` | 捲動敘事：開場貼紙飛進手機、功能區固定並切換 01～06、段落淡入、右下角頁碼 |
-| `src/layouts/Base.astro` | `<head>`、頁首、頁尾 |
-| `src/styles/global.css` | 配色 tokens（淺色／深色）、貼紙風格的按鈕與卡片、手機外框 |
-| `public/assets/` | App 圖示 |
-| `public/assets/screens/` | 功能區的 App 畫面 |
+| `/download` | App 首頁 |
+| `/open/schedule` | 課表 |
+| `/open/attendance` | 快速點名 |
+| `/open/library` | 圖書館入館碼 |
+| `/open/mail` | 校園信箱 |
+| `/open/moodle` | M 園區 |
+| `/open/calendar` | 行事曆 |
 
-### 動畫
+驗證設定在 `public/.well-known/`（Android 的 `assetlinks.json`、iOS 的 `apple-app-site-association`）。新增 `/open/<功能>` 時，網站的 `src/pages/open/[feature].astro` 與 App 端都要一起修改。
 
-`story.ts` 對所有人都播放完整動畫，**不參考系統的「減少動態效果」設定**（網站擁有者 2026-10-05 的決定：電腦常因 Windows 動畫效果關閉或遠端桌面而回報減少動態，導致看不到開場動畫）。
+## 分析工具
 
-### App 畫面
-
-`public/assets/screens/` 的截圖用 App 的商店截圖模式（`flutter build apk --debug --dart-define=NIU_STORE_SCREENSHOTS=true`，不顯示示範模式提示）在模擬器上拍，時間設在週一 08:30 讓首頁有「上課中」，轉成 540×1200 WebP，另外縮一份 360 寬的 `<名稱>-360.webp` 給手機用（`srcset`），換截圖時兩份都要換。
-
-## 下載連結 /download
-
-海報、傳單、社群貼文都用 **https://niu-life.app/download**，類似 Firebase Dynamic Links：
-
-- iPhone／iPad 直接前往 App Store，Android 直接前往 Google Play，電腦顯示按鈕與這個網址的 QR Code。
-- 可以加 `utm_*` 參數區分來源，例如 `https://niu-life.app/download?utm_source=poster&utm_medium=qr&utm_campaign=freshman`。GA 會依參數歸類這次瀏覽；Android 的參數也會帶進 Google Play 的安裝來源（Play Console → 使用者取得）。App Store 不支援這種參數。
-
-## App Links 與 Universal Links（/download、/open/…）
-
-`public/.well-known/assetlinks.json` 是 Play Console 產生的 Digital Asset Links，證明 niu-life.app 屬於 `me.windless.niulife`（憑證是 Google 保管的 App 簽署金鑰，所以只有從 Play 安裝的 App 會通過驗證）。
-
-`public/.well-known/apple-app-site-association` 是 iOS 的 Universal Links 設定，指定 `G4LXL97NF9.dev.chienniuapp` 接管 `/download` 與 `/open/*`。iOS App 還要在 entitlements 加上 `applinks:niu-life.app`，並處理開進來的網址（iOS 維護者負責）。GitHub Pages 會把這個沒有副檔名的檔案以 `application/octet-stream` 送出，Apple 的 CDN 仍可讀取；確認方式：`https://app-site-association.cdn-apple.com/a/v1/niu-life.app`（Apple 會快取，更新後可能要一兩天才反映）。
-
-Android App（1.0.16 起）接管同樣兩種網址，裝了 App 的手機點了會直接開 App：
-
-- `https://niu-life.app/download`：開 App；沒裝的人照常前往商店。
-- `https://niu-life.app/open/<功能>`：開 App 裡的功能，`<功能>` 是 `schedule`（課表）、`attendance`（快速點名）、`library`（入館碼）、`mail`（校園信箱）、`moodle`（M 園區）、`calendar`（行事曆）。沒裝 App 或用 iPhone 的人會看到 `src/pages/open/[feature].astro` 的說明頁與下載按鈕。新增功能時，這裡和 App 的 `lib/app/deep_links.dart` 要一起改。
-
-驗證：`https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://niu-life.app&relation=delegate_permission/common.handle_all_urls`。
-
-## Google Analytics
-
-評估 ID `G-TQSN4NFDVD`（資料串流 16044768167），在 `src/layouts/Base.astro` 載入，等頁面載入完、瀏覽器閒下來才下載（`/download` 例外，立即載入），已關閉 Google 信號與廣告個人化。
-
-- 頁面瀏覽：每頁自動記錄；`/download` 的瀏覽次數就是透過下載連結前往商店的次數（跳轉前會等頁面瀏覽送出，最多 1.5 秒）。
-- `store_click`：點了哪個商店按鈕（`store` = ios／android）。
-- GA 會把自訂事件暫存約 5 秒再批次送出，頁面在那之前離開就會遺失，所以商店按鈕都開新分頁，`/download` 不另送事件。
-
-## SEO
-
-- 每頁的標題、說明、canonical 與分享預覽（Open Graph、`twitter:card`）都在 `src/layouts/Base.astro`。分享預覽圖是 `public/assets/og.png`（1200×630）。
-- `noindex` 的頁面：`/download`（手機會直接跳轉到商店）、`/open/*`、404。這些頁面不輸出 canonical。
-- `sitemap.xml` 由 `src/pages/sitemap.xml.ts` 產生，列出 `src/site.ts` 的 `INDEXED_PAGES`；新增要被收錄的頁面時記得加進去。`public/robots.txt` 指向它。
-- 首頁有 JSON-LD 結構化資料（WebSite、Organization、MobileApplication），在 `src/pages/index.astro`。
-- 大家搜尋時用的其他名稱（宜大 App、宜大校園通、NIU 宜大學生 App、宜大 Life）寫在首頁的標題與說明、FAQ 第一題，以及結構化資料的 `alternateName`。英文大小寫不影響搜尋，`宜大app` 和 `宜大APP` 都會對到。
-- Google Search Console 用 Cloudflare 的 DNS TXT 紀錄驗證網域，並提交 `https://niu-life.app/sitemap.xml`。
-
-## Microsoft Clarity
-
-專案 ID `yszvcoth95`，在 `src/layouts/Base.astro` 載入（和 GA 一樣等頁面載入完、瀏覽器閒下來才下載，避免拖慢首次顯示；只有 `/download` 立即載入，才能在跳轉前送出瀏覽），記錄網站的熱圖與瀏覽過程重播（只有網站，App 沒有）。隱私權政策的「第三方服務」已列出。
+網站使用 Google Analytics（已關閉 Google 信號與廣告個人化）與 Microsoft Clarity，兩者都等頁面載入完成後才載入，不影響首次顯示。App 本身不使用這兩項服務。詳見[隱私權政策](https://niu-life.app/privacy)。
 
 ## 部署
 
-推到 `main` 後，GitHub Actions（`.github/workflows/pages.yml`）建置並部署到 GitHub Pages，`www` 會轉到主網域。
+推送到 `main` 後，GitHub Actions（`.github/workflows/pages.yml`）會建置並部署到 GitHub Pages。
 
-- 網域 DNS 在 Cloudflare，紀錄要維持「僅 DNS」（灰色雲朵）：A 指向 GitHub 的 185.199.108–111.153，AAAA 指向 2606:50c0:8000–8003::153，`www` CNAME 指向 `windlessme.github.io`。開代理（橘色雲朵）會讓 GitHub 無法續簽憑證。
-- HTTPS 憑證由 GitHub 自動向 Let's Encrypt 申請與續約，Pages 設定已開「強制 HTTPS」。
+## 聯絡與回報
 
-## 隱私權政策與聯絡窗口
-
-- **隱私權政策**：iOS 版、Android 版與網站共用一份，唯一來源是 `src/content/privacy.md`，公開網址 **https://niu-life.app/privacy**。採一般 App 的概括寫法（收集哪些資料、如何使用、第三方服務、權限、保存與安全、你的選擇、變更、聯絡），不逐項列功能細節（使用者 2026-10-05 決定）；但資料流向必須正確，新增會送出資料的功能時要確認仍涵蓋。修改後更新 frontmatter 的 `updated`，推到 `main` 就會部署。Android App 內的隱私權畫面是摘要，政策有實質變動時一起改（niu-app-android 的 `lib/features/settings/privacy_screen.dart`）；iOS 版的對應內容由 iOS 維護者處理。
-- **聯絡信箱**：兩個平台共用 **hi@niu-life.app**（Cloudflare Email Routing）。
-- **問題回報表單**：https://forms.gle/2ok6fydShrfe6PHr5（網站許願池與 Android App 的「回報問題」共用）。
-
-## 商店連結
-
-- App Store（iOS 版，qian403 維護）：https://apps.apple.com/tw/app/niu-life/id6813616626
-- Google Play（Android 版）：https://play.google.com/store/apps/details?id=me.windless.niulife
+- 信箱：hi@niu-life.app
+- 問題回報與功能許願：https://forms.gle/2ok6fydShrfe6PHr5
 
 ## 授權
 
-網站原始碼以 [MIT 授權](LICENSE)公開。iOS 與 Android App 各自的授權見 [qian403/NIU-app](https://github.com/qian403/NIU-app/blob/main/LICENSE) 與 [windlessme/niu-app-android](https://github.com/windlessme/niu-app-android/blob/main/LICENSE)。
+網站原始碼以 [MIT 授權](LICENSE)公開。iOS 與 Android App 的授權請見各自的 repo。
