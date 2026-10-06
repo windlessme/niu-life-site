@@ -9,8 +9,10 @@ interface Props {
   home?: boolean;
   /** Pages search engines should skip (404, app-link fallbacks): no canonical either. */
   noindex?: boolean;
+  /** Load analytics right away instead of once the page is idle (/download needs its view sent before leaving). */
+  eagerAnalytics?: boolean;
 }
-const { title, description, home = false, noindex = false } = Astro.props;
+const { title, description, home = false, noindex = false, eagerAnalytics = false } = Astro.props;
 const base = import.meta.env.BASE_URL;
 // Addresses read without .html (GitHub Pages serves /privacy from privacy.html).
 const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/index$/, '/'), Astro.site);
@@ -39,21 +41,28 @@ const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/i
     <meta name="apple-itunes-app" content="app-id=6813616626" />
     <link rel="icon" type="image/png" sizes="32x32" href={`${base}assets/favicon-32.png`} />
     <link rel="apple-touch-icon" href={`${base}assets/apple-touch-icon.png`} />
-    <!-- Google Analytics: page views and store clicks; no Google signals or ad personalisation. -->
-    <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}></script>
-    <script is:inline define:vars={{ GA_ID }}>
+    <!-- Google Analytics (page views and store clicks; no Google signals or ad
+         personalisation) and Microsoft Clarity (heatmaps and session replays).
+         Calls queue at once; the scripts load after the page is up and idle so
+         they don't hold back the first paint. -->
+    <script is:inline define:vars={{ GA_ID, CLARITY_ID, eagerAnalytics }}>
       window.dataLayer = window.dataLayer || [];
       window.gtag = function () { window.dataLayer.push(arguments); };
       window.gtag('js', new Date());
       window.gtag('config', GA_ID, { allow_google_signals: false, allow_ad_personalization_signals: false });
-    </script>
-    <!-- Microsoft Clarity: heatmaps and session replays of the site. -->
-    <script is:inline define:vars={{ CLARITY_ID }}>
-      (function (c, l, a, r, i, t, y) {
-        c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
-        t = l.createElement(r); t.async = 1; t.src = 'https://www.clarity.ms/tag/' + i;
-        y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
-      })(window, document, 'clarity', 'script', CLARITY_ID);
+      window.clarity = window.clarity || function () { (window.clarity.q = window.clarity.q || []).push(arguments); };
+      const load = () => {
+        for (const src of [`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`, `https://www.clarity.ms/tag/${CLARITY_ID}`]) {
+          const s = document.createElement('script');
+          s.async = true;
+          s.src = src;
+          document.head.append(s);
+        }
+      };
+      const idle = () => (window.requestIdleCallback ? requestIdleCallback(load, { timeout: 3000 }) : setTimeout(load, 1));
+      if (eagerAnalytics) load();
+      else if (document.readyState === 'complete') idle();
+      else addEventListener('load', idle, { once: true });
     </script>
     <slot name="head" />
   </head>
@@ -62,7 +71,7 @@ const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/i
     <header class="site-header">
       <div class="wrap">
         <a class="brand" href={base}>
-          <img src={`${base}assets/icon-192.png`} alt="" width="32" height="32" />NIU-Life
+          <img src={`${base}assets/icon-64.png`} alt="" width="32" height="32" />NIU-Life
         </a>
         <nav class="site-nav" aria-label="主選單">
           <a class="optional" href={`${base}#features`}>功能</a>

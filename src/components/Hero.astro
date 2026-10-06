@@ -22,7 +22,12 @@ const base = import.meta.env.BASE_URL;
     <div class="hero-phone" aria-hidden="true">
       <div class="phone">
         <div class="phone-screen">
-          <img src={`${base}assets/screens/home.webp`} alt="" width="540" height="1200" />
+          <img
+            src={`${base}assets/screens/home.webp`}
+            srcset={`${base}assets/screens/home-360.webp 360w, ${base}assets/screens/home.webp 540w`}
+            sizes="(max-width: 640px) 46vw, 270px"
+            alt="" width="540" height="1200" fetchpriority="high"
+          />
           <div class="phone-off"><span>NIU-Life</span></div>
         </div>
       </div>
