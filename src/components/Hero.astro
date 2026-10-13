@@ -18,6 +18,7 @@ const base = import.meta.env.BASE_URL;
   <div class="stage">
     <div class="hero-copy">
       <h1 id="hero-title">宜大生活的麻煩，<br /><em>收進一支手機。</em></h1>
+      <p class="hero-sub">國立宜蘭大學學生的非官方校園助手</p>
     </div>
     <div class="hero-phone" aria-hidden="true">
       <div class="phone">
@@ -26,7 +27,7 @@ const base = import.meta.env.BASE_URL;
             src={`${base}assets/screens/home.webp`}
             srcset={`${base}assets/screens/home-360.webp 360w, ${base}assets/screens/home.webp 540w`}
             sizes="(max-width: 640px) 46vw, 270px"
-            alt="" width="540" height="1200" fetchpriority="high"
+            alt="NIU-Life 首頁：今天的宜大課表與上課中的課程" width="540" height="1200" fetchpriority="high"
           />
           <div class="phone-off"><span>NIU-Life</span></div>
         </div>
@@ -49,6 +50,7 @@ const base = import.meta.env.BASE_URL;
   .hero-copy { position: absolute; top: 5%; left: 0; right: 0; text-align: center; padding-inline: 16px; }
   h1 { font-size: clamp(2.1rem, 6.4vw, 4.4rem); line-height: 1.12; margin: 0; letter-spacing: -.01em; }
   h1 em { font-style: normal; color: var(--accent); }
+  .hero-sub { margin: 10px 0 0; font-size: clamp(.95rem, 1.8vw, 1.15rem); font-weight: 600; color: var(--muted); }
   .hero-phone { position: absolute; left: 50%; top: 61%; width: min(27vh, 46vw, 270px); translate: -50% -50%; }
   .phone-off {
     position: absolute; inset: 0; display: grid; place-items: center;

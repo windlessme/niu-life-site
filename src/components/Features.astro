@@ -3,10 +3,10 @@
 const steps = [
   { title: '今天的課，一眼就知道', screen: 'home', points: ['首頁顯示上課中與下一堂，含時間與教室', '點課程直接開 M 園區', '主畫面小工具、上課前提醒'] },
   { title: '整週課表，一次看完', screen: 'week', points: ['星期與日期、今天整欄標出', '紅線標出現在時間', '週六日有課也放得下'] },
-  { title: '校園信箱，不用再開網頁', screen: 'mail', points: ['收信、寫信、回覆與轉寄，支援附件', '登入驗證碼自動辨識', '信件匣、搜尋、搬移與刪除'] },
+  { title: '宜大校園信箱，不用再開網頁', screen: 'mail', points: ['收信、寫信、回覆與轉寄，支援附件', '登入驗證碼自動辨識', '信件匣、搜尋、搬移與刪除'] },
   { title: '請假，進度看得清楚', screen: 'leave-detail', points: ['在 App 裡申請並上傳證明', '簽核到哪一關、誰簽的都看得到', '被退回時，原因放在最上面'] },
-  { title: '圖書館，入館不用找', screen: 'library', points: ['入館 QR Code 與借書條碼', '研究小間、討論室預約', '自動調亮螢幕方便掃描'] },
-  { title: 'M 園區與快速點名', screen: 'moodle', points: ['公告、教材、作業、成績與出席', '掃描老師的 QR Code 點名', '作業截止前提醒'] },
+  { title: '宜大圖書館，入館不用找', screen: 'library', points: ['入館 QR Code 與借書條碼', '研究小間、討論室預約', '自動調亮螢幕方便掃描'] },
+  { title: 'M 園區與快速點名', screen: 'moodle', points: ['宜大 M 園區的公告、教材、作業、成績與出席', '掃描老師的 QR Code 點名', '作業截止前提醒'] },
 ];
 const base = import.meta.env.BASE_URL;
 ---
@@ -14,7 +14,7 @@ const base = import.meta.env.BASE_URL;
   <div class="stage">
     <div class="copy">
       <p class="eyebrow">FEATURES</p>
-      <h2 id="features-title">NIU-Life 能做什麼</h2>
+      <h2 id="features-title">NIU-Life 能為宜大學生做什麼</h2>
       <ol class="steps">
         {steps.map((s, i) => (
           <li class:list={['step', { active: i === 0 }]} data-step={i}>
@@ -31,7 +31,7 @@ const base = import.meta.env.BASE_URL;
       <div class="phone">
         <div class="phone-screen">
           {steps.map((s, i) => (
-            <img class:list={{ active: i === 0 }} data-step={i} src={`${base}assets/screens/${s.screen}.webp`} srcset={`${base}assets/screens/${s.screen}-360.webp 360w, ${base}assets/screens/${s.screen}.webp 540w`} sizes="(max-width: 820px) 50vw, 300px" alt="" width="540" height="1200" loading={i ? 'lazy' : 'eager'} />
+            <img class:list={{ active: i === 0 }} data-step={i} src={`${base}assets/screens/${s.screen}.webp`} srcset={`${base}assets/screens/${s.screen}-360.webp 360w, ${base}assets/screens/${s.screen}.webp 540w`} sizes="(max-width: 820px) 50vw, 300px" alt={`NIU-Life 畫面：${s.title}`} width="540" height="1200" loading={i ? 'lazy' : 'eager'} />
           ))}
         </div>
       </div>
