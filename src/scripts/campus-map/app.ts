@@ -260,7 +260,7 @@ export async function start(root: HTMLElement) {
     world.replaceChildren();
     overlay.replaceChildren();
     shapes = [];
-    el('path', { d: path(f.outline), class: 'cm-slab' }, world);
+    el('path', { d: (f.outlines ?? [f.outline]).map((r) => path(r)).join(''), class: 'cm-slab' }, world);
     const gap = 0.18;
     for (const kind of ORDER)
       for (const s of f.spaces) {
