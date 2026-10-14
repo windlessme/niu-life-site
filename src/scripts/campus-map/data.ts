@@ -13,6 +13,8 @@ export interface Space {
   polygon?: Pt[];
   /** The school's classroom code, e.g. 工423. */
   code?: string;
+  /** Other codes the school uses (E505, 格101): searchable, never shown. */
+  aka?: string[];
   name?: string;
   note?: string;
 }
@@ -104,6 +106,12 @@ export function centroid(poly: Pt[]): Pt {
 }
 
 /** Rooms are what lists, search and taps pick; toilets are only labelled. */
+/** The code without its building character (教305 → 305); E and 格 codes keep theirs. */
+export const shortCode = (s: Space) =>
+  s.code && s.code.charCodeAt(0) >= 0x2e80 && !s.code.startsWith('格') ? s.code.slice(1) : undefined;
+
+const names = (s: Space) => [label(s), ...(s.aka ?? [])].filter((t): t is string => !!t);
+
 export const isRoom = (s: Space) => s.kind === 'room';
 
 /** Code, else name: what a list or the plan leads with. */
@@ -154,7 +162,8 @@ export function searchRooms(buildings: Building[], query: string): RoomHit[] {
   const q = normalize(query);
   if (!q) return [];
   const hit = (s: Space) =>
-    (!!s.code && (s.code.includes(q) || s.code.slice(1).startsWith(q))) ||
+    (!!s.code && (s.code.includes(q) || !!shortCode(s)?.startsWith(q))) ||
+    (s.aka ?? []).some((a) => a.includes(q)) ||
     !!s.name?.includes(q) ||
     !!s.note?.includes(q);
   const out: RoomHit[] = [];
@@ -170,12 +179,16 @@ export function searchRooms(buildings: Building[], query: string): RoomHit[] {
 export function locate(buildings: Building[], text: string): RoomHit | undefined {
   const t = normalize(text);
   let best: RoomHit | undefined;
+  let matched = 0;
   for (const building of buildings)
     for (const floor of building.floors)
       for (const space of floor.spaces) {
-        const l = label(space);
-        if (isRoom(space) && l && t.includes(l) && (!best || l.length > label(best.space)!.length))
-          best = { building, floor, space };
+        if (!isRoom(space) || !label(space)) continue;
+        for (const n of names(space))
+          if (t.includes(n) && n.length > matched) {
+            best = { building, floor, space };
+            matched = n.length;
+          }
       }
   return best;
 }
