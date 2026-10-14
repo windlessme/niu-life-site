@@ -8,4 +8,4 @@ export const APP_STORE = 'https://apps.apple.com/tw/app/niu-life/id6813616626';
 export const GOOGLE_PLAY = 'https://play.google.com/store/apps/details?id=me.windless.niulife';
 
 /** Pages search engines should index; sitemap.xml lists them. */
-export const INDEXED_PAGES = ['', 'about', 'privacy'];
+export const INDEXED_PAGES = ['', 'map', 'about', 'privacy'];
