@@ -5,7 +5,7 @@
 
 import {
   box, buildingBox, centre, centroid, defaultFloor, details, floorTitle, isRoom, label, levels, locate,
-  namedBuildings, normalize, points, searchRooms,
+  namedBuildings, normalize, points, searchRooms, shortCode,
   type Box, type Building, type Floor, type Link, type Overview, type OverviewBuilding, type Pt, type RoomHit,
   type Space,
 } from './data';
@@ -339,7 +339,7 @@ export async function start(root: HTMLElement) {
     // known only by its name wraps onto up to three lines.
     let size = 12;
     let shown: string[] | undefined;
-    for (const t of [main, r.s.code ? main.slice(1) : null]) {
+    for (const t of [main, shortCode(r.s)]) {
       if (!t) continue;
       const k = Math.min(1, w / measure(t, 12, 700), (h - 2) / 14);
       if (k >= 1 || (t !== main && 12 * k >= 7)) {
