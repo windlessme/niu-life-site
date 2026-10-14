@@ -29,6 +29,8 @@ export interface Link {
 export interface Floor {
   id: string;
   outline: Pt[];
+  /** Every ring when a floor is in separate parts (綜合教學大樓's wings). */
+  outlines?: Pt[][];
   spaces: Space[];
   links?: Link[];
   /** Who the floor belongs to, e.g. 環境工程學系, and what people call it. */
@@ -134,7 +136,7 @@ export const defaultFloor = (b: Building) => b.floors.find((f) => f.id === '1F')
 
 export function buildingBox(b: Building): Box {
   return b.floors
-    .flatMap((f) => [f.outline, ...f.spaces.map(points)])
+    .flatMap((f) => [...(f.outlines ?? [f.outline]), ...f.spaces.map(points)])
     .map(box)
     .reduce(union);
 }
