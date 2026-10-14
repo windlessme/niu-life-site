@@ -51,6 +51,12 @@ const measure = (() => {
   };
 })();
 
+/** 'A（B）' → ['A', 'B'], so a name with an alias takes two short lines. */
+const mapName = (name: string) => {
+  const m = name.match(/^(.*?)\s*[（(]([^）)]+)[）)]\s*$/);
+  return m ? [m[1], m[2]] : [name];
+};
+
 const byLabel = (a: Space, b: Space) => label(a)!.localeCompare(label(b)!, 'zh-Hant', { numeric: true });
 
 interface State {
@@ -183,20 +189,49 @@ export async function start(root: HTMLElement) {
       root.style.setProperty('--street', `${Math.max(7, 5 * s)}px`);
       root.style.setProperty('--service', `${Math.max(3.5, 3 * s)}px`);
       root.style.setProperty('--path', `${Math.max(1.2, 1.5 * s)}px`);
-      const rank = (b: OverviewBuilding) => (b === state.picked ? 0 : b.plan ? 1 : 2);
+      // Picked first, then buildings with plans or a name people know them
+      // by (格致大樓 is 電資學院), then the rest; 司令台 and the like last.
+      const rank = (b: OverviewBuilding) =>
+        b === state.picked ? 0 : b.plan ? 1 : b.name!.includes('（') ? 1.5 : b.listed === false ? 3 : 2;
       const order = [...texts].sort((a, b) => rank(a.b) - rank(b.b) || area(b.b) - area(a.b));
       const taken: Box[] = [];
+      const { w: vw, h: vh } = viewport.size;
+      const free = (r: Box) => !taken.some((o) => r.x0 < o.x1 && r.x1 > o.x0 && r.y0 < o.y1 && r.y1 > o.y0);
       for (const t of order) {
+        // A name with another in brackets stacks them: 格致大樓 / 電資學院.
+        const lines = mapName(t.b.name!);
         const [x, y] = viewport.toScreen(t.at);
-        const w = measure(t.b.name!, 12, 700) + 4;
-        const r = { x0: x - w / 2, y0: y - 9, x1: x + w / 2, y1: y + 9 };
-        const fits = !taken.some((o) => r.x0 < o.x1 && r.x1 > o.x0 && r.y0 < o.y1 && r.y1 > o.y0);
-        t.node.style.display = fits ? '' : 'none';
-        if (!fits) continue;
+        const bb = screenBox(box(t.b.polygon));
+        const hw = (bb.x1 - bb.x0) / 2, hh = (bb.y1 - bb.y0) / 2;
+        let placed: { r: Box; size: number } | undefined;
+        // On the building, else around it, then a size smaller, so the
+        // crowded west side keeps its names at the whole-campus view.
+        for (const size of PHONE.matches ? [11, 9.5, 8.5] : [12, 10.5, 9.5]) {
+          const w = Math.max(...lines.map((l) => measure(l, size, 700))) + 4;
+          const h = lines.length * size * 1.25 + 4;
+          const dx = hw + w / 2, dy = hh + h / 2;
+          const ring = [[0, -dy], [0, dy], [-dx, 0], [dx, 0], [dx, -dy], [-dx, -dy], [dx, dy], [-dx, dy]];
+          for (const [ox, oy] of [[0, 0], ...ring]) {
+            const r = { x0: x + ox - w / 2, y0: y + oy - h / 2, x1: x + ox + w / 2, y1: y + oy + h / 2 };
+            const onScreen = r.x0 >= 0 && r.y0 >= 0 && r.x1 <= vw && r.y1 <= vh;
+            if ((ox || oy) && !onScreen) continue;
+            if (free(r)) {
+              placed = { r, size };
+              break;
+            }
+          }
+          if (placed) break;
+        }
+        t.node.style.display = placed ? '' : 'none';
+        if (!placed) continue;
+        const { r, size } = placed;
         taken.push({ x0: r.x0 - 2, y0: r.y0 - 2, x1: r.x1 + 2, y1: r.y1 + 2 });
-        t.node.setAttribute('x', x.toFixed(1));
-        t.node.setAttribute('y', y.toFixed(1));
-        t.node.textContent = t.b.name!;
+        const cx = (r.x0 + r.x1) / 2;
+        t.node.style.fontSize = `${size}px`;
+        t.node.replaceChildren();
+        lines.forEach((l, i) => {
+          el('tspan', { x: cx.toFixed(1), y: (r.y0 + 2 + size * 0.95 + i * size * 1.25).toFixed(1) }, t.node).textContent = l;
+        });
         t.node.classList.toggle('on', t.b === state.picked);
         t.node.classList.toggle('planned', !!t.b.plan);
       }
