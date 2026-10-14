@@ -75,6 +75,7 @@ const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/i
         </a>
         <nav class="site-nav" aria-label="主選單">
           <a class="optional" href={`${base}#features`}>功能</a>
+          <a href={`${base}map`}>校園地圖</a>
           <a class="optional" href={`${base}#faq`}>常見問題</a>
           <a class="optional" href={`${base}#wish`}>許願池</a>
           <a class="optional" href={`${base}about`}>關於我們</a>
@@ -88,6 +89,7 @@ const canonical = new URL(Astro.url.pathname.replace(/\.html$/, '').replace(/\/i
     <footer class="site-footer">
       <div class="wrap">
         <div class="footer-links">
+          <a href={`${base}map`}>校園地圖</a>
           <a href={`${base}about`}>關於我們</a>
           <a href={`${base}privacy`}>隱私權政策</a>
           <a href="mailto:hi@niu-life.app">聯絡我們</a>

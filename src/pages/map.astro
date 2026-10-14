@@ -1,0 +1,268 @@
+---
+import Base from '../layouts/Base.astro';
+import campus from '../data/campus-map/campus.json';
+import { details, floorTitle, isRoom, label, levels, type Building, type Overview } from '../scripts/campus-map/data';
+
+// Every building with floor plans; the directory below the map lists their
+// rooms for search engines and for reading without the map.
+const files = import.meta.glob<{ default: Building }>('../data/campus-map/*.json', { eager: true });
+const plans = [...new Set((campus as Overview).buildings.map((b) => b.plan).filter(Boolean))];
+const buildings = plans.map((p) => files[`../data/campus-map/${p}.json`].default);
+const base = import.meta.env.BASE_URL;
+const sortRooms = (a: string, b: string) => a.localeCompare(b, 'zh-Hant', { numeric: true });
+---
+<Base
+  title="宜大校園地圖與教室位置｜NIU-Life"
+  description="國立宜蘭大學校園地圖：全校建築總覽，教穡大樓、工學院大樓的樓層平面圖，可以搜尋教室代碼、教室名稱與系所辦公室。"
+>
+  <div class="cm" data-cm>
+    <div class="cm-map">
+      <svg class="cm-svg" aria-label="宜大校園地圖，可拖曳與縮放">
+        <g class="cm-world"></g>
+        <g class="cm-labels"></g>
+      </svg>
+      <div class="cm-floors" role="group" aria-label="樓層" hidden></div>
+      <div class="cm-controls">
+        <button type="button" class="cm-ctl cm-zoom-in" aria-label="放大" title="放大"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg></button>
+        <button type="button" class="cm-ctl cm-zoom-out" aria-label="縮小" title="縮小"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg></button>
+        <button type="button" class="cm-ctl cm-fit" aria-label="顯示全部" title="顯示全部"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg></button>
+      </div>
+      <p class="cm-credit"></p>
+      <p class="cm-loading">地圖載入中…</p>
+    </div>
+    <aside class="cm-panel" aria-label="建築與教室">
+      <div class="cm-head">
+        <button type="button" class="cm-handle" aria-expanded="false" aria-label="展開清單"><span></span></button>
+        <div class="cm-searchbar">
+          <button type="button" class="cm-back cm-icon" aria-label="回到全校地圖" title="回到全校地圖" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+          </button>
+          <label class="cm-field">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" /><path d="M16 16l4 4" /></svg>
+            <span class="visually-hidden">搜尋</span>
+            <input class="cm-search" type="search" enterkeyhint="search" autocomplete="off" placeholder="搜尋大樓、教室、系所" />
+          </label>
+        </div>
+        <div class="cm-summary" aria-live="polite"></div>
+      </div>
+      <div class="cm-body"></div>
+    </aside>
+  </div>
+
+  <section class="wrap cm-directory" aria-labelledby="directory">
+    <p class="eyebrow">DIRECTORY</p>
+    <h2 id="directory" class="cm-dir-title">教室一覽</h2>
+    <p class="cm-dir-lead">
+      樓層平面圖依各樓層的緊急逃生平面圖繪製，教室代碼與名稱和現場告示相同。在 NIU-Life App 的「小工具 → 校園地圖」也看得到，課表上的教室可以直接開啟位置。
+    </p>
+    {buildings.map((b) => (
+      <details class="cm-dir">
+        <summary><strong>{b.name}</strong><span>{levels(b)}</span></summary>
+        {[...b.floors].map((f) => {
+          const rooms = f.spaces.filter((s) => isRoom(s) && s.code).sort((x, y) => sortRooms(label(x)!, label(y)!));
+          return rooms.length > 0 && (
+            <div class="cm-dir-floor">
+              <h3>{floorTitle(f.id)}{f.unit && <span>・{f.unit}</span>}</h3>
+              <ul>
+                {rooms.map((s) => (
+                  <li><a href={`${base}map?b=${b.id}&r=${encodeURIComponent(label(s)!)}`}>{label(s)}</a>{details(s).length > 0 && <span>{details(s).join('・')}</span>}</li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </details>
+    ))}
+  </section>
+</Base>
+
+<script>
+  import { start } from '../scripts/campus-map/app';
+  const root = document.querySelector<HTMLElement>('[data-cm]');
+  if (root) start(root);
+</script>
+
+<style is:global>
+  /* ── Campus map (/map). The map and panel are built by
+     scripts/campus-map/app.ts, so these styles are global. ── */
+  .cm {
+    --cm-ground: #eceef3;
+    --cm-campus: #f7f8fb;
+    --cm-green: #dcecd6;
+    --cm-sport: #f0e3d3;
+    --cm-water: #cfe2f6;
+    --cm-other: #dcdfe6;
+    --cm-plan: #c9c8f3;
+    --cm-plan-edge: #5856d6;
+    --cm-restroom: #dcefec;
+    --cm-restroom-edge: #a9d3cc;
+    --cm-step: #dcdfe6;
+    --cm-step-edge: #b9bec9;
+    --cm-terrace: #e1eedb;
+    --cm-room-edge: color-mix(in srgb, var(--accent) 30%, transparent);
+    --cm-shadow: 0 6px 18px rgb(20 30 60 / .14);
+    --street: 7px;
+    --service: 3.5px;
+    --path: 1.2px;
+    position: relative;
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    height: calc(100svh - var(--header));
+    min-height: 480px;
+    border-bottom: 1px solid var(--line);
+    background: var(--cm-ground);
+  }
+  @media (prefers-color-scheme: dark) {
+    .cm {
+      --cm-ground: #14171c;
+      --cm-campus: #1b1f26;
+      --cm-green: #1d2c22;
+      --cm-sport: #33291f;
+      --cm-water: #182a3d;
+      --cm-other: #2a2f38;
+      --cm-plan: #2e2d63;
+      --cm-plan-edge: #8f8cf5;
+      --cm-restroom: #183330;
+      --cm-restroom-edge: #2f5a54;
+      --cm-step: #2a2f38;
+      --cm-step-edge: #454c58;
+      --cm-terrace: #1d2c22;
+      --cm-shadow: 0 6px 18px rgb(0 0 0 / .45);
+    }
+  }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+  .cm-map { position: relative; grid-column: 2; grid-row: 1; overflow: hidden; }
+  .cm-svg { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+  .cm-svg.dragging { cursor: grabbing; }
+  .cm-loading { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: var(--muted); }
+  .cm.ready .cm-loading { display: none; }
+
+  /* Overview */
+  .cm-ground { fill: var(--cm-ground); }
+  .cm-campus { fill: var(--cm-campus); }
+  .cm-green { fill: var(--cm-green); }
+  .cm-sport { fill: var(--cm-sport); }
+  .cm-water { fill: var(--cm-water); }
+  .cm-parking { fill: var(--line); }
+  .cm-road { fill: none; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+  .cm-road.cm-fill { stroke: var(--surface); }
+  .cm-road.cm-casing { stroke: var(--line); }
+  .cm-road.cm-street.cm-fill { stroke-width: var(--street); }
+  .cm-road.cm-street.cm-casing { stroke-width: calc(var(--street) + 2px); }
+  .cm-road.cm-service.cm-fill { stroke-width: var(--service); }
+  .cm-road.cm-service.cm-casing { stroke-width: calc(var(--service) + 2px); }
+  .cm-road.cm-path.cm-fill { stroke-width: var(--path); opacity: .9; }
+  .cm-building { fill: var(--cm-other); stroke: var(--line); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+  .cm-building.cm-ours { fill: var(--accent-soft); stroke: var(--cm-room-edge); cursor: pointer; }
+  .cm-building.cm-plan { fill: var(--cm-plan); stroke: var(--cm-plan-edge); cursor: pointer; }
+  .cm-building.on { fill: var(--accent); stroke: var(--accent); stroke-width: 2px; }
+  .cm-boundary { fill: none; stroke: var(--accent); stroke-width: 2px; vector-effect: non-scaling-stroke; pointer-events: none; }
+  .cm-labels { pointer-events: none; }
+  .cm-labels text { font-family: inherit; paint-order: stroke; stroke: var(--cm-campus); stroke-width: 3px; stroke-linejoin: round; }
+  .cm-name { font-size: 12px; font-weight: 500; fill: var(--text); text-anchor: middle; dominant-baseline: central; }
+  .cm-name.planned { font-weight: 700; }
+  .cm-name.on { fill: var(--accent); font-weight: 800; }
+
+  /* Floor plans */
+  .cm-slab { fill: var(--surface); stroke: var(--line); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+  .cm-space { vector-effect: non-scaling-stroke; stroke-width: 1px; }
+  .cm-corridor { fill: var(--surface); stroke: none; }
+  .cm-terrace { fill: var(--cm-terrace); stroke: none; }
+  .cm-void { fill: var(--cm-ground); stroke: var(--cm-step-edge); }
+  .cm-room { fill: var(--accent-soft); stroke: var(--cm-room-edge); }
+  .cm-restroom { fill: var(--cm-restroom); stroke: var(--cm-restroom-edge); }
+  .cm-stairs, .cm-elevator { fill: var(--cm-step); stroke: var(--cm-step-edge); }
+  .cm-treads path, .cm-cross { stroke: var(--cm-step-edge); stroke-width: 1px; vector-effect: non-scaling-stroke; fill: none; pointer-events: none; }
+  .cm-pick { cursor: pointer; }
+  .cm-space.on { fill: var(--accent); stroke: var(--accent); stroke-width: 2px; }
+  .cm-code, .cm-room-name { text-anchor: middle; stroke: transparent !important; }
+  .cm-code { font-size: 12px; font-weight: 700; fill: var(--text); }
+  .cm-room-name { font-size: 11px; font-weight: 500; fill: var(--muted); }
+  .cm-code.on, .cm-room-name.on { fill: var(--on-accent); }
+  .cm-link rect { fill: color-mix(in srgb, var(--cm-plan-edge) 16%, var(--surface)); }
+  .cm-link text { font-size: 12px; font-weight: 600; fill: var(--cm-plan-edge); stroke: transparent !important; }
+  .cm-link path { fill: var(--cm-plan-edge); }
+
+  /* Floating controls */
+  .cm-floors, .cm-controls { position: absolute; right: 16px; display: flex; flex-direction: column; background: var(--surface); border-radius: 14px; box-shadow: var(--cm-shadow); overflow: hidden; }
+  .cm-floors { top: 16px; max-height: calc(100% - 200px); overflow-y: auto; }
+  .cm-floors[hidden] { display: none; }
+  .cm-controls { bottom: 40px; }
+  .cm-floor, .cm-ctl { appearance: none; border: 0; background: none; color: var(--text); font: inherit; cursor: pointer; }
+  .cm-floor { min-width: 48px; height: 40px; padding: 0 10px; font-weight: 700; font-size: .9rem; font-variant-numeric: tabular-nums; }
+  .cm-floor + .cm-floor, .cm-ctl + .cm-ctl { border-top: 1px solid var(--line); }
+  .cm-floor:hover, .cm-ctl:hover { background: var(--bg); }
+  .cm-floor.current { background: var(--accent); color: var(--on-accent); }
+  .cm-ctl { width: 44px; height: 44px; display: grid; place-items: center; }
+  .cm-ctl svg, .cm-icon svg, .cm-field svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .cm-credit { position: absolute; left: 12px; bottom: 8px; margin: 0; font-size: .75rem; color: var(--muted); background: color-mix(in srgb, var(--surface) 80%, transparent); padding: 2px 8px; border-radius: 999px; }
+  .cm-credit[hidden] { display: none; }
+
+  /* Panel */
+  .cm-panel { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; min-height: 0; background: var(--surface); border-right: 1px solid var(--line); z-index: 2; }
+  .cm-head { padding: 16px 16px 12px; border-bottom: 1px solid var(--line); }
+  .cm-handle { display: none; }
+  .cm-searchbar { display: flex; gap: 8px; align-items: center; }
+  .cm-field { flex: 1; display: flex; align-items: center; gap: 8px; padding: 0 14px; height: 44px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); color: var(--muted); }
+  .cm-field:focus-within { border-color: var(--accent); }
+  .cm-search { flex: 1; min-width: 0; border: 0; background: none; color: var(--text); font: inherit; font-size: 16px; outline: none; }
+  .cm-icon { appearance: none; flex: none; width: 40px; height: 40px; display: grid; place-items: center; border: 0; border-radius: 999px; background: var(--bg); color: var(--text); cursor: pointer; }
+  .cm-icon:hover { background: var(--accent-soft); }
+  .cm-icon[hidden] { display: none; }
+  .cm-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 14px; min-height: 48px; }
+  .cm-summary-text { flex: 1; min-width: 0; }
+  .cm-title { margin: 0; font-size: 1.15rem; line-height: 1.35; }
+  .cm-sub { margin: 2px 0 0; font-size: .85rem; color: var(--muted); line-height: 1.45; }
+  .cm-open { width: 100%; justify-content: center; }
+  .cm-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 16px 24px; overscroll-behavior: contain; }
+  .cm-section { margin-top: 16px; }
+  .cm-eyebrow { margin: 0 0 8px 4px; font-size: .75rem; font-weight: 800; letter-spacing: .1em; color: var(--muted); }
+  .cm-group { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+  .cm-row { appearance: none; display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px; border: 0; background: var(--surface); color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+  .cm-row + .cm-row { border-top: 1px solid var(--line); }
+  .cm-row:hover { background: var(--bg); }
+  .cm-row.current { background: var(--accent-soft); }
+  .cm-row-text { flex: 1; min-width: 0; display: grid; }
+  .cm-row-title { font-weight: 700; }
+  .cm-row-sub { font-size: .85rem; color: var(--muted); line-height: 1.45; }
+  .cm-tag { flex: none; font-size: .75rem; font-weight: 700; color: var(--cm-plan-edge); background: color-mix(in srgb, var(--cm-plan-edge) 14%, transparent); padding: 2px 8px; border-radius: 999px; }
+  .cm-empty { color: var(--muted); font-size: .9rem; margin: 16px 4px; }
+
+  /* Phones: the map fills the screen and the panel is a drawer whose
+     header (handle, search, summary) stays put while the list scrolls. */
+  @media (max-width: 820px) {
+    .cm { display: block; }
+    .cm-map { position: absolute; inset: 0; }
+    .cm-panel {
+      position: absolute; left: 0; right: 0; bottom: 0; height: 172px;
+      border-right: 0; border-radius: 20px 20px 0 0; box-shadow: 0 -4px 20px rgb(0 0 0 / .12);
+      transition: height .28s cubic-bezier(.2, .8, .2, 1);
+    }
+    .cm-head { padding: 0 16px 10px; touch-action: none; }
+    .cm-handle { display: grid; place-items: center; width: 100%; height: 22px; border: 0; background: none; cursor: pointer; padding: 0; }
+    .cm-handle span { width: 36px; height: 4px; border-radius: 2px; background: var(--line); }
+    .cm-summary { margin-top: 10px; min-height: 0; }
+    .cm-panel:not(.open) .cm-open { width: auto; padding: 6px 14px; font-size: .9rem; box-shadow: 2px 2px 0 var(--ink-line); }
+    .cm-panel:not(.open) .cm-summary { flex-wrap: nowrap; }
+    .cm-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cm-controls { bottom: auto; top: 16px; right: auto; left: 16px; }
+    .cm-credit { bottom: auto; top: 8px; left: auto; right: 12px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .cm-panel { transition: none; } }
+
+  /* Directory */
+  .cm-directory { padding-block: 56px 24px; max-width: 860px; }
+  .cm-dir-title { font-size: clamp(1.4rem, 3vw, 1.9rem); margin: 0 0 12px; }
+  .cm-dir-lead { color: var(--muted); margin: 0 0 24px; }
+  .cm-dir { border: 2px solid var(--ink-line); border-radius: 20px; background: var(--surface); margin-bottom: 16px; box-shadow: 4px 4px 0 var(--ink-line); }
+  .cm-dir summary { cursor: pointer; padding: 16px 20px; display: flex; gap: 12px; align-items: baseline; flex-wrap: wrap; }
+  .cm-dir summary span { color: var(--muted); font-size: .9rem; }
+  .cm-dir-floor { padding: 0 20px 12px; }
+  .cm-dir-floor h3 { font-size: 1rem; margin: 12px 0 6px; }
+  .cm-dir-floor h3 span { color: var(--muted); font-weight: 600; }
+  .cm-dir-floor ul { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 4px 16px; }
+  .cm-dir-floor li { font-size: .92rem; display: flex; gap: 8px; }
+  .cm-dir-floor li a { font-weight: 700; white-space: nowrap; }
+  .cm-dir-floor li span { color: var(--muted); }
+</style>

@@ -34,11 +34,14 @@ src/
 │   ├── about.astro         /about 關於我們
 │   ├── privacy.astro       /privacy 隱私權政策
 │   ├── download.astro      /download 依裝置前往商店
+│   ├── map.astro           /map 校園地圖（全校總覽、樓層平面圖、教室搜尋）
 │   ├── open/[feature].astro  /open/<功能> 沒裝 App 時的說明頁
 │   ├── sitemap.xml.ts
 │   └── 404.astro
 ├── components/       # 首頁段落（Hero、About、Features、Privacy、Faq、Wish、Download）與商店按鈕
 ├── content/privacy.md  # 隱私權政策內文
+├── data/campus-map/    # 校園地圖資料，從 Android repo 的 app-content/campus-map 複製
+├── scripts/campus-map/ # /map 的地圖繪製、平移縮放、搜尋
 ├── layouts/Base.astro  # <head>、頁首、頁尾
 ├── scripts/story.ts    # 首頁的捲動動畫
 ├── styles/global.css   # 配色（淺色／深色）與共用樣式
@@ -52,6 +55,7 @@ public/
 
 - **隱私權政策**：iOS 版、Android 版與網站共用 `src/content/privacy.md` 這一份。修改後請更新 frontmatter 的 `updated` 日期。
 - **App 畫面**：`public/assets/screens/` 每張畫面有兩種尺寸，540×1200 的 `<名稱>.webp` 和給手機用的 360 寬 `<名稱>-360.webp`，換圖時兩份都要換。
+- **校園地圖**：資料來源是 Android repo 的 `app-content/campus-map`（OpenStreetMap 總覽與各大樓樓層平面圖，App 也用同一份）。地圖或平面圖更新後執行 `node scripts/sync-campus-map.mjs ../niu-app-android`，再提交 `src/data/campus-map/`。網址可以帶 `?b=<大樓>&f=<樓層>&r=<教室>`，例如 `/map?r=工423`。地圖左下角的「© OpenStreetMap 貢獻者」依 ODbL 必須保留。
 - **新增頁面**：在 `src/pages/` 加檔案；要讓搜尋引擎收錄的話，把路徑加進 `src/site.ts` 的 `INDEXED_PAGES`，`sitemap.xml` 會自動列出。
 - **頁面標題與分享預覽**：由各頁傳給 `Base.astro` 的 `title` 與 `description` 產生；首頁的結構化資料（JSON-LD）在 `src/pages/index.astro`。
 
