@@ -559,7 +559,7 @@ export async function start(root: HTMLElement) {
     } else {
       setSummary('國立宜蘭大學', '點選地圖上的建築，或搜尋大樓、教室與系所');
     }
-    const named = namedBuildings(overview);
+    const named = namedBuildings(overview).filter((n) => n.listed !== false);
     const go = (n: OverviewBuilding) => () => {
       const b = plan(n.plan);
       if (b) openBuilding(b);

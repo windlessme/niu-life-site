@@ -47,6 +47,8 @@ export interface OverviewBuilding {
   name?: string;
   levels?: number;
   plan?: string;
+  /** False for structures like 司令台: on the map and in search, not the list. */
+  listed?: boolean;
 }
 
 export interface Overview {
