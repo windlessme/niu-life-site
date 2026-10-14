@@ -377,28 +377,43 @@ export async function start(root: HTMLElement) {
     });
   }
 
-  /** A pill reading 往… just inside its doorway, arrow pointing out. */
+  /** A pill reading 往… just inside its doorway, arrow pointing out; one
+   *  through a north or south wall reads top to bottom. */
   function drawLink(l: Link) {
     const g = el('g', { class: 'cm-link' }, overlay);
-    const pill = el('rect', { rx: 11, height: 22 }, g);
+    const pill = el('rect', {}, g);
     const text = el('text', {}, g);
-    text.textContent = `往${l.name}`;
+    const label = `往${l.name}`;
     const arrow = el('path', {}, g);
-    const tw = measure(text.textContent, 12, 600);
-    const w = tw + 30;
+    const tw = measure(label, 12, 600);
     return () => {
       let [dx, dy] = l.toward;
       if (viewport.rotated) [dx, dy] = [-dy, dx];
       const n = Math.hypot(dx, dy);
       [dx, dy] = [dx / n, dy / n];
+      const upright = Math.abs(dy) > Math.abs(dx);
+      const chars = [...label];
+      const w = upright ? 22 : tw + 30;
+      const h = upright ? chars.length * 13 + 30 : 22;
       const [ax, ay] = viewport.toScreen(l.at);
-      const cx = ax - (dx * w) / 2, cy = ay - (dy * 22) / 2;
+      const cx = ax - (dx * w) / 2, cy = ay - (dy * h) / 2;
       pill.setAttribute('x', (cx - w / 2).toFixed(1));
-      pill.setAttribute('y', (cy - 11).toFixed(1));
+      pill.setAttribute('y', (cy - h / 2).toFixed(1));
       pill.setAttribute('width', w.toFixed(1));
-      text.setAttribute('x', (cx - w / 2 + 10).toFixed(1));
-      text.setAttribute('y', (cy + 4.5).toFixed(1));
-      const tip: Pt = [cx + w / 2 - 10 + dx * 4, cy + dy * 4];
+      pill.setAttribute('height', h.toFixed(1));
+      pill.setAttribute('rx', '11');
+      text.replaceChildren();
+      // Text away from the doorway, the arrow at it.
+      if (upright) {
+        const top = dy > 0 ? cy - h / 2 + 10 : cy - h / 2 + 24;
+        chars.forEach((c, i) => {
+          el('tspan', { x: cx.toFixed(1), y: (top + 10 + i * 13).toFixed(1), 'text-anchor': 'middle' }, text).textContent = c;
+        });
+      } else {
+        el('tspan', { x: (dx > 0 ? cx - w / 2 + 10 : cx - w / 2 + 20).toFixed(1), y: (cy + 4.5).toFixed(1) }, text).textContent = label;
+      }
+      const end: Pt = upright ? [cx, dy > 0 ? cy + h / 2 - 10 : cy - h / 2 + 10] : [dx > 0 ? cx + w / 2 - 10 : cx - w / 2 + 10, cy];
+      const tip: Pt = [end[0] + dx * 4, end[1] + dy * 4];
       const bk: Pt = [tip[0] - dx * 9, tip[1] - dy * 9];
       const [sx, sy] = [-dy * 4.5, dx * 4.5];
       arrow.setAttribute('d', `M${tip[0]} ${tip[1]}L${bk[0] + sx} ${bk[1] + sy}L${bk[0] - sx} ${bk[1] - sy}Z`);
