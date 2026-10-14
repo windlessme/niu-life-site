@@ -279,11 +279,11 @@ export async function start(root: HTMLElement) {
     return { x0: Math.min(a[0], c[0]), y0: Math.min(a[1], c[1]), x1: Math.max(a[0], c[0]), y1: Math.max(a[1], c[1]) };
   }
 
-  function wrap(text: string, size: number, width: number, max: number) {
+  function wrap(text: string, size: number, width: number, max: number, weight = 500) {
     const lines: string[] = [];
     let line = '';
     for (const ch of text) {
-      if (line && measure(line + ch, size, 500) > width) {
+      if (line && measure(line + ch, size, weight) > width) {
         lines.push(line);
         line = ch;
         if (lines.length === max) return null;
@@ -299,22 +299,46 @@ export async function start(root: HTMLElement) {
     const [cx, cy] = [(sb.x0 + sb.x1) / 2, (sb.y0 + sb.y1) / 2];
     const on = r.s === state.room;
     const main = label(r.s)!;
-    // Codes drop their building prefix when tight: 工423 → 423.
-    const shown = [main, r.s.code ? main.slice(1) : null].find((t) => t && measure(t, 12, 700) <= w && h >= 14);
-    const sub = r.s.code && r.s.name && h >= 40 ? wrap(r.s.name, 11, w, h >= 56 ? 2 : 1) : null;
+    // Codes drop their building prefix when tight (工423 → 423), then shrink
+    // down to 7 px, so even a cupboard-sized room keeps its number. A room
+    // known only by its name wraps onto up to three lines.
+    let size = 12;
+    let shown: string[] | undefined;
+    for (const t of [main, r.s.code ? main.slice(1) : null]) {
+      if (!t) continue;
+      const k = Math.min(1, w / measure(t, 12, 700), (h - 2) / 14);
+      if (k >= 1 || (t !== main && 12 * k >= 7)) {
+        shown = [t];
+        size = 12 * k;
+        break;
+      }
+    }
+    if (!shown && !r.s.code)
+      for (let sz = 12; sz >= 7; sz *= 0.9) {
+        const lines = wrap(main, sz, w, 3, 700);
+        if (lines && lines.length * sz * 1.2 <= h) {
+          shown = lines;
+          size = sz;
+          break;
+        }
+      }
+    r.code.style.fontSize = `${size.toFixed(1)}px`;
+    const sub = r.s.code && r.s.name && size >= 12 && h >= 40 ? wrap(r.s.name, 11, w, h >= 56 ? 2 : 1) : null;
     r.code.style.display = shown ? '' : 'none';
     r.name.style.display = shown && sub ? '' : 'none';
     r.code.classList.toggle('on', on);
     r.name.classList.toggle('on', on);
     if (!shown) return;
     const lines = sub ?? [];
-    const total = 15 + lines.length * 13;
-    r.code.textContent = shown;
-    r.code.setAttribute('x', cx.toFixed(1));
-    r.code.setAttribute('y', (cy - total / 2 + 12).toFixed(1));
+    const head = shown.length * size * 1.2;
+    const total = head + 3 + lines.length * 13;
+    r.code.replaceChildren();
+    shown.forEach((l, i) => {
+      el('tspan', { x: cx.toFixed(1), y: (cy - total / 2 + size + i * size * 1.2).toFixed(1) }, r.code).textContent = l;
+    });
     r.name.replaceChildren();
     lines.forEach((l, i) => {
-      el('tspan', { x: cx.toFixed(1), y: (cy - total / 2 + 15 + 11 + i * 13).toFixed(1) }, r.name).textContent = l;
+      el('tspan', { x: cx.toFixed(1), y: (cy - total / 2 + head + 3 + 11 + i * 13).toFixed(1) }, r.name).textContent = l;
     });
   }
 
@@ -488,7 +512,7 @@ export async function start(root: HTMLElement) {
     summary.replaceChildren(
       html('div', { class: 'cm-summary-text' },
         html('h1', { class: 'cm-title', textContent: title }),
-        html('p', { class: 'cm-sub', textContent: subtitle })),
+        subtitle ? html('p', { class: 'cm-sub', textContent: subtitle }) : null),
       ...actions,
     );
   }
@@ -511,8 +535,7 @@ export async function start(root: HTMLElement) {
       if (room) {
         setSummary(label(room)!, [`${b.name} ${floorTitle(f.id)}`, ...details(room)].join('・'), [closeButton('取消標示', () => selectRoom(undefined, false))]);
       } else {
-        const coded = rooms.filter((s) => s.code).length;
-        setSummary(`${b.name} ${floorTitle(f.id)}`, [f.unit, `${rooms.length} 個空間`, coded ? `${coded} 間有編號` : ''].filter(Boolean).join('・'));
+        setSummary(`${b.name} ${floorTitle(f.id)}`, f.unit ?? '');
       }
       body.replaceChildren(
         rooms.length
