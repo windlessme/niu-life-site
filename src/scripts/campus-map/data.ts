@@ -26,6 +26,14 @@ export interface Link {
   toward: Pt;
 }
 
+export interface Zone {
+  name: string;
+  note?: string;
+  polygon: Pt[];
+  /** The zone's own way in, signed on the plan like a link. */
+  entrance?: { at: Pt; toward: Pt };
+}
+
 export interface Floor {
   id: string;
   outline: Pt[];
@@ -33,8 +41,8 @@ export interface Floor {
   outlines?: Pt[][];
   spaces: Space[];
   links?: Link[];
-  /** Doors no one may pass, each a line across the doorway. */
-  closed?: Pt[][];
+  /** Parts of the floor set apart: 圖書資訊中心's wing with its own entrance. */
+  zones?: Zone[];
   /** Who the floor belongs to, e.g. 環境工程學系, and what people call it. */
   unit?: string;
   aliases?: string[];
@@ -95,15 +103,18 @@ function inside(poly: Pt[], [x, y]: Pt) {
  * L-shaped office isn't labelled in the corner it doesn't have. Same as the app.
  */
 export function labelBox(s: Space): Box {
-  const b = box(points(s));
-  if (s.rect) return b;
+  return s.rect ? box(points(s)) : largestBox(points(s));
+}
+
+/** The largest upright rectangle inside a polygon, clear of any of holes. */
+export function largestBox(poly: Pt[], holes: Pt[][] = []): Box {
+  const b = box(poly);
   const n = 32, cw = (b.x1 - b.x0) / n, ch = (b.y1 - b.y0) / n;
-  const poly = points(s);
   const heights = new Array<number>(n).fill(0);
   let best: Box | undefined, area = 0;
   for (let row = 0; row < n; row++) {
     for (let col = 0; col < n; col++)
-      heights[col] = inside(poly, [b.x0 + (col + 0.5) * cw, b.y0 + (row + 0.5) * ch]) ? heights[col] + 1 : 0;
+      heights[col] = ((at: Pt) => inside(poly, at) && !holes.some((h) => inside(h, at)))([b.x0 + (col + 0.5) * cw, b.y0 + (row + 0.5) * ch]) ? heights[col] + 1 : 0;
     for (let col = 0; col < n; col++) {
       let h = heights[col];
       for (let end = col; end < n && h > 0; end++) {
@@ -117,20 +128,6 @@ export function labelBox(s: Space): Box {
     }
   }
   return best ?? b;
-}
-
-/** The point halfway along a line, where a closed door's cross goes. */
-export function midpoint(line: Pt[]): Pt {
-  const steps = line.slice(1).map((p, i) => Math.hypot(p[0] - line[i][0], p[1] - line[i][1]));
-  let left = steps.reduce((a, b) => a + b, 0) / 2;
-  for (let i = 0; i < steps.length; i++) {
-    if (left <= steps[i] && steps[i] > 0) {
-      const t = left / steps[i];
-      return [line[i][0] + (line[i + 1][0] - line[i][0]) * t, line[i][1] + (line[i + 1][1] - line[i][1]) * t];
-    }
-    left -= steps[i];
-  }
-  return line[line.length - 1];
 }
 
 export function box(pts: Pt[]): Box {
@@ -160,6 +157,15 @@ export function centroid(poly: Pt[]): Pt {
   });
   return Math.abs(a) < 1e-6 ? centre(box(poly)) : [x / (3 * a), y / (3 * a)];
 }
+
+/** The zone a room lies in, by its middle. */
+export function zoneOf(f: Floor, s: Space) {
+  const c = centre(labelBox(s));
+  return (f.zones ?? []).find((z) => inside(z.polygon, c));
+}
+
+/** '獨立區域，由 1 樓獨立入口進出'. */
+export const zoneText = (z: Zone) => [z.name, z.note].filter(Boolean).join('，');
 
 /** Rooms are what lists, search and taps pick; toilets are only labelled. */
 /** The code without its building character (教305 → 305); E and 格 codes keep theirs. */
