@@ -4,7 +4,7 @@
 // the building, floor and room so a link opens the same view.
 
 import {
-  box, buildingBox, centre, centroid, defaultFloor, details, floorTitle, isRoom, label, levels, locate, midpoint,
+  box, buildingBox, centre, centroid, defaultFloor, details, floorTitle, isRoom, label, labelBox, levels, locate, midpoint, union,
   namedBuildings, normalize, points, searchRooms, shortCode,
   type Box, type Building, type Floor, type Link, type Overview, type OverviewBuilding, type Pt, type RoomHit,
   type Space,
@@ -307,7 +307,7 @@ export async function start(root: HTMLElement) {
     }
 
     const rooms = f.spaces.filter((s) => (isRoom(s) || s.kind === 'restroom') && label(s)).map((s) => ({
-      s, b: box(points(s)),
+      s, b: labelBox(s),
       code: el('text', { class: 'cm-code' }, overlay),
       name: el('text', { class: 'cm-room-name' }, overlay),
     }));
@@ -430,8 +430,14 @@ export async function start(root: HTMLElement) {
     };
   }
 
+  // Floors share the building's framing so rooms stay put between floors,
+  // except a floor much smaller than the building, which fills the view.
   function floorFrame(animate = false) {
-    viewport.frameTo(buildingBox(state.building!), padding(), { rotate: true, maxZoom: 6, animate });
+    const whole = buildingBox(state.building!);
+    const f = state.floor!;
+    const own = [...(f.outlines ?? [f.outline]), ...f.spaces.map(points)].map(box).reduce(union);
+    const small = own.x1 - own.x0 < (whole.x1 - whole.x0) * 0.85 || own.y1 - own.y0 < (whole.y1 - whole.y0) * 0.85;
+    viewport.frameTo(small ? own : whole, padding(), { rotate: true, maxZoom: 6, animate, turnBy: whole });
   }
 
   function focusRoom(s: Space) {
@@ -489,7 +495,7 @@ export async function start(root: HTMLElement) {
     drawFloor(f);
     renderFloors();
     renderPanel();
-    viewport.reset(false);
+    floorFrame();
   }
 
   function selectRoom(s: Space | undefined, fly = true) {
