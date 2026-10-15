@@ -54,11 +54,17 @@ export class Viewport {
   }
 
   /** Frames [content] in the area [pad] leaves clear; zoom stays between that and [maxZoom] times it. */
-  frameTo(content: Box, pad: Padding, opts: { rotate?: boolean; maxZoom?: number; animate?: boolean } = {}) {
+  frameTo(
+    content: Box,
+    pad: Padding,
+    opts: { rotate?: boolean; maxZoom?: number; animate?: boolean; turnBy?: Box } = {},
+  ) {
     const { w, h } = this.size;
     const room = { w: Math.max(w - pad.left - pad.right, 40), h: Math.max(h - pad.top - pad.bottom, 40) };
     const bw = content.x1 - content.x0, bh = content.y1 - content.y0;
-    this.rotated = !!opts.rotate && bw > bh && room.h > room.w;
+    // Whether to turn is the whole building's call (turnBy), so every floor turns alike.
+    const turn = opts.turnBy ?? content;
+    this.rotated = !!opts.rotate && turn.x1 - turn.x0 > turn.y1 - turn.y0 && room.h > room.w;
     const [cw, ch] = this.rotated ? [bh, bw] : [bw, bh];
     const s = Math.min(room.w / cw, room.h / ch);
     const c: Pt = [(content.x0 + content.x1) / 2, (content.y0 + content.y1) / 2];

@@ -81,6 +81,44 @@ export function points(s: Space): Pt[] {
   return s.polygon ?? [];
 }
 
+function inside(poly: Pt[], [x, y]: Pt) {
+  let hit = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+    const [xi, yi] = poly[i], [xj, yj] = poly[j];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) hit = !hit;
+  }
+  return hit;
+}
+
+/**
+ * Where a room's label goes: the largest upright rectangle inside it, so an
+ * L-shaped office isn't labelled in the corner it doesn't have. Same as the app.
+ */
+export function labelBox(s: Space): Box {
+  const b = box(points(s));
+  if (s.rect) return b;
+  const n = 32, cw = (b.x1 - b.x0) / n, ch = (b.y1 - b.y0) / n;
+  const poly = points(s);
+  const heights = new Array<number>(n).fill(0);
+  let best: Box | undefined, area = 0;
+  for (let row = 0; row < n; row++) {
+    for (let col = 0; col < n; col++)
+      heights[col] = inside(poly, [b.x0 + (col + 0.5) * cw, b.y0 + (row + 0.5) * ch]) ? heights[col] + 1 : 0;
+    for (let col = 0; col < n; col++) {
+      let h = heights[col];
+      for (let end = col; end < n && h > 0; end++) {
+        h = Math.min(h, heights[end]);
+        const a = (end + 1 - col) * h;
+        if (a > area) {
+          area = a;
+          best = { x0: b.x0 + col * cw, y0: b.y0 + (row + 1 - h) * ch, x1: b.x0 + (end + 1) * cw, y1: b.y0 + (row + 1) * ch };
+        }
+      }
+    }
+  }
+  return best ?? b;
+}
+
 /** The point halfway along a line, where a closed door's cross goes. */
 export function midpoint(line: Pt[]): Pt {
   const steps = line.slice(1).map((p, i) => Math.hypot(p[0] - line[i][0], p[1] - line[i][1]));
