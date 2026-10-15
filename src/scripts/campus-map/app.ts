@@ -4,9 +4,9 @@
 // the building, floor and room so a link opens the same view.
 
 import {
-  box, buildingBox, centre, centroid, defaultFloor, details, floorTitle, isRoom, label, labelBox, levels, locate, midpoint, union,
+  box, buildingBox, centre, centroid, defaultFloor, details, floorTitle, isRoom, label, labelBox, largestBox, levels, locate, union, zoneOf, zoneText,
   namedBuildings, normalize, points, searchRooms, shortCode,
-  type Box, type Building, type Floor, type Link, type Overview, type OverviewBuilding, type Pt, type RoomHit,
+  type Box, type Building, type Floor, type Link, type Zone, type Overview, type OverviewBuilding, type Pt, type RoomHit,
   type Space,
 } from './data';
 import { Viewport, type Padding } from './viewport';
@@ -261,6 +261,8 @@ export async function start(root: HTMLElement) {
     overlay.replaceChildren();
     shapes = [];
     el('path', { d: (f.outlines ?? [f.outline]).map((r) => path(r)).join(''), class: 'cm-slab' }, world);
+    // A zone's floor is shaded apart from the rest.
+    for (const z of f.zones ?? []) el('path', { d: path(z.polygon), class: 'cm-zone' }, world);
     const gap = 0.18;
     for (const kind of ORDER)
       for (const s of f.spaces) {
@@ -296,25 +298,23 @@ export async function start(root: HTMLElement) {
         }
       }
 
-    // Doors no one may pass: a red bar across, crossed out halfway.
-    for (const line of f.closed ?? []) {
-      const [x, y] = midpoint(line);
-      const r = 0.6;
-      el('path', {
-        d: `M${line.map((p) => p.join(' ')).join('L')}M${x - r} ${y - r}L${x + r} ${y + r}M${x + r} ${y - r}L${x - r} ${y + r}`,
-        class: 'cm-closed',
-      }, world);
-    }
+    // Zones' edges, dashed: a boundary, not a wall.
+    for (const z of f.zones ?? []) el('path', { d: path(z.polygon), class: 'cm-zone-edge' }, world);
 
     const rooms = f.spaces.filter((s) => (isRoom(s) || s.kind === 'restroom') && label(s)).map((s) => ({
       s, b: labelBox(s),
       code: el('text', { class: 'cm-code' }, overlay),
       name: el('text', { class: 'cm-room-name' }, overlay),
     }));
-    const links = (f.links ?? []).map((l) => drawLink(l));
+    const links = [
+      ...(f.links ?? []).map((l) => drawLink(l)),
+      ...(f.zones ?? []).filter((z) => z.entrance).map((z) => drawLink({ to: '', name: '', ...z.entrance! }, '獨立入口')),
+    ];
+    const tags = (f.zones ?? []).map((z) => zoneTag(z, f.spaces));
     labels = () => {
       for (const r of rooms) placeRoom(r);
       for (const l of links) l();
+      for (const t of tags) t();
     };
     highlight();
   }
@@ -389,11 +389,23 @@ export async function start(root: HTMLElement) {
 
   /** A pill reading 往… just inside its doorway, arrow pointing out; one
    *  through a north or south wall reads top to bottom. */
-  function drawLink(l: Link) {
+  /** The zone's name in its largest open part, clear of rooms. Same as the app. */
+  function zoneTag(z: Zone, spaces: Space[]) {
+    const t = el('text', { class: 'cm-zone-tag' }, overlay);
+    t.textContent = z.name;
+    const free = largestBox(z.polygon, spaces.filter((s) => s.kind !== 'corridor').map(points));
+    const b = free.x1 > free.x0 && free.y1 > free.y0 ? free : largestBox(z.polygon);
+    return () => {
+      const [x, y] = centre(screenBox(b));
+      t.setAttribute('x', x.toFixed(1));
+      t.setAttribute('y', (y + 4).toFixed(1));
+    };
+  }
+
+  function drawLink(l: Link, label = `往${l.name}`) {
     const g = el('g', { class: 'cm-link' }, overlay);
     const pill = el('rect', {}, g);
     const text = el('text', {}, g);
-    const label = `往${l.name}`;
     const arrow = el('path', {}, g);
     const tw = measure(label, 12, 600);
     return () => {
@@ -599,7 +611,12 @@ export async function start(root: HTMLElement) {
       const b = state.building, f = state.floor!, room = state.room;
       const rooms = f.spaces.filter((s) => isRoom(s) && label(s)).sort(byLabel);
       if (room) {
-        setSummary(label(room)!, [`${b.name} ${floorTitle(f.id)}`, ...details(room)].join('・'), [closeButton('取消標示', () => selectRoom(undefined, false))]);
+        const zone = zoneOf(f, room);
+        setSummary(
+          label(room)!,
+          [`${b.name} ${floorTitle(f.id)}`, ...details(room), ...(zone ? [zoneText(zone)] : [])].join('・'),
+          [closeButton('取消標示', () => selectRoom(undefined, false))],
+        );
       } else {
         setSummary(`${b.name} ${floorTitle(f.id)}`, f.unit ?? '');
       }
