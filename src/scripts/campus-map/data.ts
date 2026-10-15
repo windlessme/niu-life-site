@@ -33,6 +33,8 @@ export interface Floor {
   outlines?: Pt[][];
   spaces: Space[];
   links?: Link[];
+  /** Doors no one may pass, each a line across the doorway. */
+  closed?: Pt[][];
   /** Who the floor belongs to, e.g. 環境工程學系, and what people call it. */
   unit?: string;
   aliases?: string[];
@@ -77,6 +79,20 @@ export function points(s: Space): Pt[] {
     return [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
   }
   return s.polygon ?? [];
+}
+
+/** The point halfway along a line, where a closed door's cross goes. */
+export function midpoint(line: Pt[]): Pt {
+  const steps = line.slice(1).map((p, i) => Math.hypot(p[0] - line[i][0], p[1] - line[i][1]));
+  let left = steps.reduce((a, b) => a + b, 0) / 2;
+  for (let i = 0; i < steps.length; i++) {
+    if (left <= steps[i] && steps[i] > 0) {
+      const t = left / steps[i];
+      return [line[i][0] + (line[i + 1][0] - line[i][0]) * t, line[i][1] + (line[i + 1][1] - line[i][1]) * t];
+    }
+    left -= steps[i];
+  }
+  return line[line.length - 1];
 }
 
 export function box(pts: Pt[]): Box {

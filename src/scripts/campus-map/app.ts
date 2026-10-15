@@ -4,7 +4,7 @@
 // the building, floor and room so a link opens the same view.
 
 import {
-  box, buildingBox, centre, centroid, defaultFloor, details, floorTitle, isRoom, label, levels, locate,
+  box, buildingBox, centre, centroid, defaultFloor, details, floorTitle, isRoom, label, levels, locate, midpoint,
   namedBuildings, normalize, points, searchRooms, shortCode,
   type Box, type Building, type Floor, type Link, type Overview, type OverviewBuilding, type Pt, type RoomHit,
   type Space,
@@ -295,6 +295,16 @@ export async function start(root: HTMLElement) {
           shapes.push({ el: node, space: s });
         }
       }
+
+    // Doors no one may pass: a red bar across, crossed out halfway.
+    for (const line of f.closed ?? []) {
+      const [x, y] = midpoint(line);
+      const r = 0.6;
+      el('path', {
+        d: `M${line.map((p) => p.join(' ')).join('L')}M${x - r} ${y - r}L${x + r} ${y + r}M${x + r} ${y - r}L${x - r} ${y + r}`,
+        class: 'cm-closed',
+      }, world);
+    }
 
     const rooms = f.spaces.filter((s) => (isRoom(s) || s.kind === 'restroom') && label(s)).map((s) => ({
       s, b: box(points(s)),

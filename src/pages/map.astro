@@ -99,6 +99,7 @@ const sortRooms = (a: string, b: string) => a.localeCompare(b, 'zh-Hant', { nume
     --cm-step: #dcdfe6;
     --cm-step-edge: #b9bec9;
     --cm-terrace: #e1eedb;
+    --cm-closed: #c9302a;
     --cm-room-edge: color-mix(in srgb, var(--accent) 30%, transparent);
     --cm-shadow: 0 6px 18px rgb(20 30 60 / .14);
     --street: 7px;
@@ -127,6 +128,7 @@ const sortRooms = (a: string, b: string) => a.localeCompare(b, 'zh-Hant', { nume
       --cm-step: #2a2f38;
       --cm-step-edge: #454c58;
       --cm-terrace: #1d2c22;
+      --cm-closed: #ff7b72;
       --cm-shadow: 0 6px 18px rgb(0 0 0 / .45);
     }
   }
@@ -173,6 +175,7 @@ const sortRooms = (a: string, b: string) => a.localeCompare(b, 'zh-Hant', { nume
   .cm-room { fill: var(--accent-soft); stroke: var(--cm-room-edge); }
   .cm-restroom { fill: var(--cm-restroom); stroke: var(--cm-restroom-edge); }
   .cm-stairs, .cm-elevator { fill: var(--cm-step); stroke: var(--cm-step-edge); }
+  .cm-closed { stroke: var(--cm-closed); stroke-width: 2.5px; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; fill: none; pointer-events: none; }
   .cm-treads path, .cm-cross { stroke: var(--cm-step-edge); stroke-width: 1px; vector-effect: non-scaling-stroke; fill: none; pointer-events: none; }
   .cm-pick { cursor: pointer; }
   .cm-space.on { fill: var(--accent); stroke: var(--accent); stroke-width: 2px; }
