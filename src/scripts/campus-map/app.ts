@@ -279,7 +279,11 @@ export async function start(root: HTMLElement) {
           node = el('path', { d: path(points(s)), class: `cm-space cm-${kind}` }, world);
         }
         const bx = box(points(s));
-        if (kind === 'stairs') {
+        if (kind === 'stairs' && !s.rect) {
+          // A drawn flight, maybe slanted: treads square to its longest side.
+          const g = el('g', { class: 'cm-treads' }, world);
+          for (const [a, b] of treads(points(s))) el('path', { d: `M${a[0]} ${a[1]}L${b[0]} ${b[1]}` }, g);
+        } else if (kind === 'stairs') {
           const g = el('g', { class: 'cm-treads' }, world);
           const across = bx.x1 - bx.x0 >= bx.y1 - bx.y0;
           for (let t = (across ? bx.x0 : bx.y0) + 0.8; t < (across ? bx.x1 : bx.y1) - 0.8; t += 0.45)
@@ -745,4 +749,30 @@ export async function start(root: HTMLElement) {
   setSheet(false, false);
   overviewFrame();
   applyUrl();
+}
+
+/** Tread lines across a polygon flight, square to its longest side and cut
+ * at its walls (each line's crossings with the edges, paired up). */
+function treads(ps: Pt[]): [Pt, Pt][] {
+  let o = ps[0], u: Pt = [1, 0], len = 0;
+  ps.forEach((a, i) => {
+    const b = ps[(i + 1) % ps.length], dx = b[0] - a[0], dy = b[1] - a[1], d = Math.hypot(dx, dy);
+    if (d > len) { len = d; o = a; u = [dx / d, dy / d]; }
+  });
+  const along = ps.map((p) => (p[0] - o[0]) * u[0] + (p[1] - o[1]) * u[1]);
+  const lo = Math.min(...along), hi = Math.max(...along);
+  const out: [Pt, Pt][] = [];
+  for (let t = lo + 0.8; t < hi - 0.8; t += 0.45) {
+    // Points where the edges cross the line at t, ordered across it.
+    const hits: Pt[] = [];
+    ps.forEach((a, i) => {
+      const b = ps[(i + 1) % ps.length], ta = along[i], tb = along[(i + 1) % ps.length];
+      if ((ta - t) * (tb - t) >= 0 && !(ta === t && tb !== t)) return;
+      const k = (t - ta) / (tb - ta);
+      hits.push([a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k]);
+    });
+    hits.sort((p, q) => (p[0] * -u[1] + p[1] * u[0]) - (q[0] * -u[1] + q[1] * u[0]));
+    for (let i = 0; i + 1 < hits.length; i += 2) out.push([hits[i], hits[i + 1]]);
+  }
+  return out;
 }
