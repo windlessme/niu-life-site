@@ -28,6 +28,9 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # 奶娃追蹤 reads reports from this Firestore project; kept out of the repo.
+          PUBLIC_NAIWA_PROJECT: ${{ vars.NAIWA_PROJECT }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

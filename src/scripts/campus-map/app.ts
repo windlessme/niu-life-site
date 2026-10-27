@@ -10,6 +10,7 @@ import {
   type Space,
 } from './data';
 import { Viewport, type Padding } from './viewport';
+import { age, current, fetchReports, MOODS, naiwaEnabled, opacity, type NaiwaReport } from './naiwa';
 
 const NS = 'http://www.w3.org/2000/svg';
 const ORDER: Space['kind'][] = ['terrace', 'corridor', 'void', 'room', 'restroom', 'stairs', 'elevator'];
@@ -95,7 +96,7 @@ export async function start(root: HTMLElement) {
   let shapes: { el: SVGElement; space?: Space; outline?: OverviewBuilding }[] = [];
   let labels: () => void = () => {};
 
-  const viewport = new Viewport(svg, world, () => labels(), (target) => tap(target));
+  const viewport = new Viewport(svg, world, () => relabel(), (target) => tap(target));
 
   // ── Drawer (phones) ────────────────────────────────────────────────
   // The header sits outside the list, so dragging or tapping it opens and
@@ -460,10 +461,154 @@ export async function start(root: HTMLElement) {
     viewport.focus(centre(box(points(s))), 2.4, padding());
   }
 
+  // ── 奶娃追蹤 ───────────────────────────────────────────────────────
+  // Reports from the app, over the map in screen pixels; reporting itself
+  // needs the app, so every card points there.
+  const naiwaLayer = root.querySelector<HTMLElement>('.cm-naiwa')!;
+  const naiwaChip = root.querySelector<HTMLButtonElement>('.cm-naiwa-chip')!;
+  const naiwaCard = root.querySelector<HTMLElement>('.cm-naiwa-card')!;
+  let naiwa: NaiwaReport[] = [];
+
+  function relabel() {
+    labels();
+    placeNaiwa();
+  }
+
+  const inside = (p: Pt, poly: Pt[]) => {
+    let hit = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [xi, yi] = poly[i], [xj, yj] = poly[j];
+      if (yi > p[1] !== yj > p[1] && p[0] < ((xj - xi) * (p[1] - yi)) / (yj - yi) + xi) hit = !hit;
+    }
+    return hit;
+  };
+
+  /** A floor report's room while the plan still has it. */
+  const naiwaRoom = (r: NaiwaReport) => {
+    if (r.spot.kind !== 'floor') return;
+    const { room } = r.spot;
+    const f = plan(r.spot.building)?.floors.find((x) => x.id === (r.spot as { floor: string }).floor);
+    return room ? f?.spaces.find((s) => label(s) === room) : undefined;
+  };
+
+  function naiwaPlace(r: NaiwaReport) {
+    if (r.spot.kind === 'campus') {
+      const at = r.spot.at;
+      return overview.buildings.find((o) => o.name && inside(at, o.polygon))?.name ?? '校園';
+    }
+    const b = plan(r.spot.building);
+    const room = naiwaRoom(r);
+    return [`${b?.name ?? r.spot.building} ${floorTitle(r.spot.floor)}`, room ? label(room) : r.spot.room].filter(Boolean).join('・');
+  }
+
+  function marker(at: Pt, r: NaiwaReport, badge?: string) {
+    const [x, y] = viewport.toScreen(at);
+    const btn = html('button', { type: 'button', class: 'cm-paw' });
+    btn.style.left = `${x}px`;
+    btn.style.top = `${y}px`;
+    btn.style.opacity = opacity(r).toFixed(2);
+    btn.setAttribute('aria-label', `奶娃${MOODS[r.mood] ?? ''}，${naiwaPlace(r)}，${age(r)}`);
+    btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="5.8" r="2.2"/><circle cx="14.5" cy="5.8" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M12 11c-3 0-6 4.2-6 6.6 0 1.7 1.3 2.4 2.7 2.4 1.3 0 2.1-.7 3.3-.7s2 .7 3.3.7c1.4 0 2.7-.7 2.7-2.4C18 15.2 15 11 12 11z"/></svg>';
+    if (badge) btn.append(html('span', { textContent: badge }));
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      showNaiwa(r);
+    });
+    naiwaLayer.append(btn);
+  }
+
+  function placeNaiwa() {
+    naiwaLayer.replaceChildren();
+    if (!naiwaEnabled()) return;
+    const shown = current(naiwa);
+    if (state.building) {
+      const b = state.building, f = state.floor!;
+      for (const r of shown)
+        if (r.spot.kind === 'floor' && r.spot.building === b.id && r.spot.floor === f.id) {
+          const room = naiwaRoom(r);
+          marker(room ? centre(labelBox(room)) : r.spot.at, r);
+        }
+      return;
+    }
+    const inBuildings = new Map<string, NaiwaReport[]>();
+    for (const r of shown) {
+      if (r.spot.kind === 'campus') marker(r.spot.at, r);
+      else inBuildings.set(r.spot.building, [...(inBuildings.get(r.spot.building) ?? []), r]);
+    }
+    for (const [id, list] of inBuildings) {
+      const o = overview.buildings.find((x) => x.plan === id);
+      if (!o) continue;
+      const floors = [...new Set(list.map((r) => (r.spot as { floor: string }).floor))];
+      marker(centroid(o.polygon), list[0], floors.length > 2 ? `${floors.length} 層` : floors.join('・'));
+    }
+  }
+
+  function naiwaCardShow(title: string, sub: string, actions: HTMLElement[]) {
+    naiwaCard.replaceChildren(
+      html('div', { class: 'cm-naiwa-head' },
+        html('div', {},
+          html('p', { class: 'cm-title', textContent: title }),
+          html('p', { class: 'cm-sub', textContent: sub })),
+        closeButton('關閉', () => { naiwaCard.hidden = true; })),
+      html('p', { class: 'cm-naiwa-app', textContent: '回報或確認奶娃位置，請使用 NIU-Life App（首頁「奶娃追蹤」）。' }),
+      html('div', { class: 'cm-naiwa-actions' }, ...actions,
+        html('a', { class: 'pill pill-solid', href: `${import.meta.env.BASE_URL}download`, textContent: '下載 App' })),
+    );
+    naiwaCard.hidden = false;
+  }
+
+  function showNaiwa(r: NaiwaReport) {
+    const actions: HTMLElement[] = [];
+    const spot = r.spot;
+    if (spot.kind === 'floor' && state.building?.id !== spot.building) {
+      const b = plan(spot.building);
+      const open = html('button', { type: 'button', class: 'pill', textContent: '查看樓層平面圖' });
+      open.addEventListener('click', () => {
+        naiwaCard.hidden = true;
+        if (b) openBuilding(b, b.floors.find((f) => f.id === spot.floor), naiwaRoom(r));
+      });
+      actions.push(open);
+    }
+    naiwaCardShow(`奶娃${MOODS[r.mood] ?? ''}`, `${naiwaPlace(r)}・${age(r)}`, actions);
+  }
+
+  function renderNaiwaChip() {
+    if (!naiwaEnabled()) return;
+    const n = current(naiwa).length;
+    naiwaChip.hidden = false;
+    naiwaChip.querySelector('.cm-naiwa-count')!.textContent = n ? `奶娃・${n}` : '奶娃追蹤';
+    naiwaChip.setAttribute('aria-label', n ? `奶娃追蹤，地圖上有 ${n} 筆回報` : '奶娃追蹤');
+  }
+  naiwaChip.addEventListener('click', () => {
+    const n = current(naiwa).length;
+    naiwaCardShow('奶娃追蹤', n ? `地圖上有 ${n} 筆最近 1 小時的回報（限時功能）` : '最近 1 小時沒有回報（限時功能）', []);
+  });
+
+  async function refreshNaiwa() {
+    if (!naiwaEnabled() || document.hidden) return;
+    try {
+      naiwa = await fetchReports();
+    } catch {
+      return; // Keep what's on the map; try again next round.
+    }
+    renderNaiwaChip();
+    renderFloors();
+    placeNaiwa();
+  }
+  if (naiwaEnabled()) {
+    setInterval(refreshNaiwa, 60_000);
+    // Older reports fade, then leave.
+    setInterval(() => {
+      renderNaiwaChip();
+      placeNaiwa();
+    }, 30_000);
+    document.addEventListener('visibilitychange', refreshNaiwa);
+  }
+
   // ── Selection ──────────────────────────────────────────────────────
   function highlight() {
     for (const sh of shapes) sh.el.classList.toggle('on', sh.space ? sh.space === state.room : sh.outline === state.picked);
-    labels();
+    relabel();
   }
 
   function tap(target: Element | null) {
@@ -717,8 +862,9 @@ export async function start(root: HTMLElement) {
     credit.hidden = !!b;
     if (!b) return;
     floorsBox.replaceChildren(...[...b.floors].reverse().map((f) => {
-      const btn = html('button', { type: 'button', class: `cm-floor${f === state.floor ? ' current' : ''}`, textContent: f.id });
-      btn.setAttribute('aria-label', floorTitle(f.id));
+      const spotted = current(naiwa).some((r) => r.spot.kind === 'floor' && r.spot.building === b.id && r.spot.floor === f.id);
+      const btn = html('button', { type: 'button', class: `cm-floor${f === state.floor ? ' current' : ''}${spotted ? ' cm-spotted' : ''}`, textContent: f.id });
+      btn.setAttribute('aria-label', spotted ? `${floorTitle(f.id)}，有奶娃回報` : floorTitle(f.id));
       if (f === state.floor) btn.setAttribute('aria-current', 'true');
       btn.addEventListener('click', () => selectFloor(f));
       return btn;
@@ -749,6 +895,7 @@ export async function start(root: HTMLElement) {
   setSheet(false, false);
   overviewFrame();
   applyUrl();
+  refreshNaiwa();
 }
 
 /** Tread lines across a polygon flight, square to its longest side and cut

@@ -56,6 +56,7 @@ public/
 - **隱私權政策**：iOS 版、Android 版與網站共用 `src/content/privacy.md` 這一份。修改後請更新 frontmatter 的 `updated` 日期。
 - **App 畫面**：`public/assets/screens/` 每張畫面有兩種尺寸，540×1200 的 `<名稱>.webp` 和給手機用的 360 寬 `<名稱>-360.webp`，換圖時兩份都要換。
 - **校園地圖**：資料來源是 Android repo 的 `app-content/campus-map`（OpenStreetMap 總覽與各大樓樓層平面圖，App 也用同一份）。地圖或平面圖更新後執行 `node scripts/sync-campus-map.mjs ../niu-app-android`，再提交 `src/data/campus-map/`。網址可以帶 `?b=<大樓>&f=<樓層>&r=<教室>`，例如 `/map?r=工423`。地圖左下角的「© OpenStreetMap 貢獻者」依 ODbL 必須保留。
+- **奶娃追蹤（限時功能）**：`/map` 會顯示 App 使用者最近 1 小時回報的奶娃位置（`src/scripts/campus-map/naiwa.ts`，每分鐘用 Firestore REST API 讀一次，網站只讀不寫，回報要用 App）。Firestore 專案由 GitHub Actions 的 repo 變數 `NAIWA_PROJECT` 在建置時帶入，沒設定時這一層不會出現；本機要看的話，在 `.env` 放 `PUBLIC_NAIWA_PROJECT=<專案>`（已 gitignore）。讀取規則在 Android repo 的 `firebase/firestore.rules`。
 - **新增頁面**：在 `src/pages/` 加檔案；要讓搜尋引擎收錄的話，把路徑加進 `src/site.ts` 的 `INDEXED_PAGES`，`sitemap.xml` 會自動列出。
 - **頁面標題與分享預覽**：由各頁傳給 `Base.astro` 的 `title` 與 `description` 產生；首頁的結構化資料（JSON-LD）在 `src/pages/index.astro`。
 
