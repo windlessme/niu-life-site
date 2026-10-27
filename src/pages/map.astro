@@ -33,6 +33,7 @@ const sortRooms = (a: string, b: string) => a.localeCompare(b, 'zh-Hant', { nume
         <span class="cm-naiwa-count">奶娃追蹤</span><small>限時</small>
       </button>
       <div class="cm-naiwa-card" role="dialog" aria-label="奶娃追蹤" hidden></div>
+      <div class="cm-naiwa-banner" role="status" hidden><span class="cm-naiwa-banner-text"></span><button type="button">取消</button></div>
       <p class="cm-credit"></p>
       <p class="cm-loading">地圖載入中…</p>
     </div>
@@ -224,8 +225,18 @@ const sortRooms = (a: string, b: string) => a.localeCompare(b, 'zh-Hant', { nume
   .cm-naiwa-card { position: absolute; top: 64px; left: 16px; width: min(340px, calc(100% - 32px)); padding: 14px 16px 16px; border-radius: 18px; background: var(--surface); box-shadow: var(--cm-shadow); z-index: 3; }
   .cm-naiwa-card[hidden] { display: none; }
   .cm-naiwa-head { display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
-  .cm-naiwa-app { margin: 10px 0 12px; font-size: .9rem; color: var(--muted); }
+  .cm-naiwa-note { margin: 10px 0 4px; font-size: .9rem; color: var(--muted); }
+  .cm-naiwa-points { margin: 10px 0 14px; padding-left: 1.2em; font-size: .88rem; line-height: 1.55; color: var(--muted); display: grid; gap: 4px; }
+  .cm-naiwa-actions { margin-top: 12px; }
+  .cm-paw-pending { border-width: 3px; animation: cm-paw-pulse 1.2s ease-in-out infinite; }
+  @keyframes cm-paw-pulse { 50% { transform: translate(-50%, -50%) scale(1.15); } }
+  @media (prefers-reduced-motion: reduce) { .cm-paw-pending { animation: none; } }
+  .cm-naiwa-banner { position: absolute; left: 50%; bottom: 40px; transform: translateX(-50%); width: min(520px, calc(100% - 32px)); display: flex; align-items: center; gap: 12px; padding: 8px 8px 8px 16px; border-radius: 999px; background: var(--cm-paw); color: var(--cm-paw-ink); font-weight: 700; box-shadow: var(--cm-shadow); z-index: 3; }
+  .cm-naiwa-banner[hidden] { display: none; }
+  .cm-naiwa-banner span { flex: 1; font-size: .92rem; }
+  .cm-naiwa-banner button { appearance: none; border: 0; border-radius: 999px; padding: 6px 14px; background: color-mix(in srgb, var(--cm-paw-ink) 18%, transparent); color: inherit; font: inherit; cursor: pointer; }
   .cm-naiwa-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cm-naiwa-actions .pill { font-size: .92rem; padding: 6px 14px; }
   .cm-floor.cm-spotted { position: relative; }
   .cm-floor.cm-spotted::after { content: ''; position: absolute; top: 6px; right: 6px; width: 7px; height: 7px; border-radius: 50%; background: var(--cm-paw); }
 
@@ -280,6 +291,7 @@ const sortRooms = (a: string, b: string) => a.localeCompare(b, 'zh-Hant', { nume
     .cm-naiwa-chip { left: 72px; }
     /* Clear of the floor picker on the right. */
     .cm-naiwa-card { left: 16px; top: 64px; width: calc(100% - 96px); }
+    .cm-naiwa-banner { bottom: auto; top: 64px; border-radius: 18px; }
     .cm-credit { bottom: auto; top: 8px; left: auto; right: 12px; }
   }
   @media (prefers-reduced-motion: reduce) { .cm-panel { transition: none; } }

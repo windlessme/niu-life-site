@@ -10,7 +10,7 @@ import {
   type Space,
 } from './data';
 import { Viewport, type Padding } from './viewport';
-import { age, current, fetchReports, MOODS, naiwaEnabled, opacity, type NaiwaReport } from './naiwa';
+import { accept, accepted, age, canReport, current, fetchReports, MOODS, naiwaEnabled, opacity, send, wait, type NaiwaReport, type NaiwaSpot } from './naiwa';
 
 const NS = 'http://www.w3.org/2000/svg';
 const ORDER: Space['kind'][] = ['terrace', 'corridor', 'void', 'room', 'restroom', 'stairs', 'elevator'];
@@ -96,7 +96,7 @@ export async function start(root: HTMLElement) {
   let shapes: { el: SVGElement; space?: Space; outline?: OverviewBuilding }[] = [];
   let labels: () => void = () => {};
 
-  const viewport = new Viewport(svg, world, () => relabel(), (target) => tap(target));
+  const viewport = new Viewport(svg, world, () => relabel(), (target, at) => tap(target, at));
 
   // ── Drawer (phones) ────────────────────────────────────────────────
   // The header sits outside the list, so dragging or tapping it opens and
@@ -462,12 +462,17 @@ export async function start(root: HTMLElement) {
   }
 
   // ── 奶娃追蹤 ───────────────────────────────────────────────────────
-  // Reports from the app, over the map in screen pixels; reporting itself
-  // needs the app, so every card points there.
+  // Reports over the map in screen pixels. Reporting: a disclosure the
+  // first time, then a tap on the overview or a floor plan, then what
+  // 奶娃 is doing.
   const naiwaLayer = root.querySelector<HTMLElement>('.cm-naiwa')!;
   const naiwaChip = root.querySelector<HTMLButtonElement>('.cm-naiwa-chip')!;
   const naiwaCard = root.querySelector<HTMLElement>('.cm-naiwa-card')!;
+  const naiwaBanner = root.querySelector<HTMLElement>('.cm-naiwa-banner')!;
   let naiwa: NaiwaReport[] = [];
+  /** Placing a report: the next tap on the map marks the spot. */
+  let placing = false;
+  let pending: NaiwaSpot | undefined;
 
   function relabel() {
     labels();
@@ -501,18 +506,19 @@ export async function start(root: HTMLElement) {
     return [`${b?.name ?? r.spot.building} ${floorTitle(r.spot.floor)}`, room ? label(room) : r.spot.room].filter(Boolean).join('・');
   }
 
-  function marker(at: Pt, r: NaiwaReport, badge?: string) {
+  function marker(at: Pt, r: NaiwaReport | undefined, badge?: string) {
     const [x, y] = viewport.toScreen(at);
-    const btn = html('button', { type: 'button', class: 'cm-paw' });
+    const btn = html('button', { type: 'button', class: r ? 'cm-paw' : 'cm-paw cm-paw-pending' });
+    if (!r) btn.tabIndex = -1;
     btn.style.left = `${x}px`;
     btn.style.top = `${y}px`;
-    btn.style.opacity = opacity(r).toFixed(2);
-    btn.setAttribute('aria-label', `奶娃${MOODS[r.mood] ?? ''}，${naiwaPlace(r)}，${age(r)}`);
+    if (r) btn.style.opacity = opacity(r).toFixed(2);
+    btn.setAttribute('aria-label', r ? `奶娃${MOODS[r.mood] ?? ''}，${naiwaPlace(r)}，${age(r)}` : '要回報的位置');
     btn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="10" r="2.2"/><circle cx="9.5" cy="5.8" r="2.2"/><circle cx="14.5" cy="5.8" r="2.2"/><circle cx="18.5" cy="10" r="2.2"/><path d="M12 11c-3 0-6 4.2-6 6.6 0 1.7 1.3 2.4 2.7 2.4 1.3 0 2.1-.7 3.3-.7s2 .7 3.3.7c1.4 0 2.7-.7 2.7-2.4C18 15.2 15 11 12 11z"/></svg>';
     if (badge) btn.append(html('span', { textContent: badge }));
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      showNaiwa(r);
+      if (r && !placing) showNaiwa(r);
     });
     naiwaLayer.append(btn);
   }
@@ -520,6 +526,14 @@ export async function start(root: HTMLElement) {
   function placeNaiwa() {
     naiwaLayer.replaceChildren();
     if (!naiwaEnabled()) return;
+    drawReports();
+    // The spot being reported, on top.
+    const p = pending;
+    if (p && (p.kind === 'campus' ? !state.building : state.building?.id === p.building && state.floor?.id === p.floor))
+      marker(p.at, undefined);
+  }
+
+  function drawReports() {
     const shown = current(naiwa);
     if (state.building) {
       const b = state.building, f = state.floor!;
@@ -543,18 +557,126 @@ export async function start(root: HTMLElement) {
     }
   }
 
-  function naiwaCardShow(title: string, sub: string, actions: HTMLElement[]) {
+  function naiwaCardShow(title: string, sub: string, actions: HTMLElement[], body: HTMLElement[] = [], onClose?: () => void) {
     naiwaCard.replaceChildren(
       html('div', { class: 'cm-naiwa-head' },
         html('div', {},
           html('p', { class: 'cm-title', textContent: title }),
-          html('p', { class: 'cm-sub', textContent: sub })),
-        closeButton('關閉', () => { naiwaCard.hidden = true; })),
-      html('p', { class: 'cm-naiwa-app', textContent: '回報或確認奶娃位置，請使用 NIU-Life App（首頁「奶娃追蹤」）。' }),
-      html('div', { class: 'cm-naiwa-actions' }, ...actions,
-        html('a', { class: 'pill pill-solid', href: `${import.meta.env.BASE_URL}download`, textContent: '下載 App' })),
+          sub ? html('p', { class: 'cm-sub', textContent: sub }) : null),
+        closeButton('關閉', () => {
+          naiwaCard.hidden = true;
+          onClose?.();
+        })),
+      ...body,
+      ...(actions.length ? [html('div', { class: 'cm-naiwa-actions' }, ...actions)] : []),
     );
     naiwaCard.hidden = false;
+  }
+
+  function button(text: string, onClick: () => void, solid = false) {
+    const b = html('button', { type: 'button', class: solid ? 'pill pill-solid' : 'pill', textContent: text });
+    b.addEventListener('click', onClick);
+    return b;
+  }
+
+  const say = (text: string) => html('p', { class: 'cm-naiwa-note', textContent: text });
+
+  /** What the report sends and keeps, before the first one. */
+  function disclose(then: () => void) {
+    const points = [
+      '這是限時功能，開放期間與內容可能隨時調整，也可能提前結束。',
+      '回報時會上傳你在地圖上點的位置（校園座標，或大樓、樓層與教室）、奶娃的狀態和回報時間。不使用定位，也不需要登入。',
+      '所有人都看得到回報內容，但看不出是誰回報的。',
+      '為了防止洗版，網站會在這個瀏覽器建立一組 Firebase 匿名識別碼，並記錄它最後一次回報的時間，每 5 分鐘只能回報一次。',
+      '回報 1 小時後不再顯示，約 2 小時後從伺服器刪除。',
+      '看到奶娃時請保持距離，不要追逐或餵食。',
+    ];
+    naiwaCardShow('回報奶娃・限時功能', '', [
+      button('同意並開始', () => {
+        accept();
+        then();
+      }, true),
+      button('暫時不要', () => { naiwaCard.hidden = true; }),
+    ], [html('ul', { class: 'cm-naiwa-points' }, ...points.map((t) => html('li', { textContent: t })))]);
+  }
+
+  function startReport() {
+    if (!accepted()) return disclose(startReport);
+    const left = wait();
+    if (left > 0) {
+      naiwaCardShow('回報奶娃', '', [], [say(`每 5 分鐘只能回報一次，請 ${Math.ceil(left / 60000)} 分鐘後再試。`)]);
+      return;
+    }
+    naiwaCard.hidden = true;
+    placing = true;
+    pending = undefined;
+    naiwaBanner.hidden = false;
+    naiwaBanner.querySelector('.cm-naiwa-banner-text')!.textContent = state.building
+      ? `點平面圖上奶娃的位置（${floorTitle(state.floor!.id)}）`
+      : '點地圖上奶娃的位置；在大樓裡的話，先點大樓進入平面圖';
+    setSheet(false);
+  }
+
+  function stopPlacing() {
+    placing = false;
+    pending = undefined;
+    naiwaBanner.hidden = true;
+    placeNaiwa();
+  }
+  naiwaBanner.querySelector('button')!.addEventListener('click', () => {
+    naiwaCard.hidden = true;
+    stopPlacing();
+  });
+
+  /** A tap while placing: on campus outdoors, or on the floor shown. */
+  function placeAt(screen: Pt, target: Element | null) {
+    const at = viewport.toWorld(screen);
+    let spot: NaiwaSpot | undefined;
+    if (state.building) {
+      const f = state.floor!;
+      const onFloor = (f.outlines ?? [f.outline]).some((r) => inside(at, r)) || f.spaces.some((s) => inside(at, points(s)));
+      if (onFloor) {
+        const room = f.spaces.find((s) => isRoom(s) && label(s) && inside(at, points(s)));
+        spot = { kind: 'floor', building: state.building.id, floor: f.id, at, room: room ? label(room) : undefined };
+      }
+    } else if (inside(at, overview.boundary)) {
+      // A tap on a building with plans opens them; it is likely inside.
+      const node = target?.closest('.cm-building');
+      const o = shapes.find((sh) => sh.el === node)?.outline;
+      const b = plan(o?.plan);
+      if (b) {
+        openBuilding(b);
+        naiwaBanner.querySelector('.cm-naiwa-banner-text')!.textContent = `點平面圖上奶娃的位置（${floorTitle(state.floor!.id)}），也可以換樓層`;
+        return;
+      }
+      spot = { kind: 'campus', at };
+    }
+    if (!spot) {
+      naiwaBanner.querySelector('.cm-naiwa-banner-text')!.textContent = state.building ? '請點在這層樓的範圍內' : '請點在校園範圍內';
+      return;
+    }
+    pending = spot;
+    placeNaiwa();
+    askMood(spot);
+  }
+
+  function spotPlace(spot: NaiwaSpot) {
+    return naiwaPlace({ id: '', spot, mood: 'here', at: Date.now() });
+  }
+
+  function askMood(spot: NaiwaSpot) {
+    const moods = Object.entries(MOODS).map(([key, text]) => button(text, async () => {
+      for (const b of naiwaCard.querySelectorAll('button')) b.disabled = true;
+      const sent = await send(spot, key);
+      if (sent === 'sent') {
+        stopPlacing();
+        naiwaCardShow('已回報，謝謝你！', spotPlace(spot), []);
+        await refreshNaiwa();
+      } else {
+        naiwaCardShow('回報奶娃', spotPlace(spot), [], [say(sent === 'tooSoon' ? '每 5 分鐘只能回報一次，請稍後再試。' : '回報失敗，請檢查網路後再試一次。')], stopPlacing);
+      }
+    }));
+    naiwaCardShow('奶娃在做什麼？', spotPlace(spot), moods, [], stopPlacing);
   }
 
   function showNaiwa(r: NaiwaReport) {
@@ -569,6 +691,13 @@ export async function start(root: HTMLElement) {
       });
       actions.push(open);
     }
+    if (canReport())
+      actions.push(button('我也看到，還在這裡', () => {
+        if (!accepted()) return disclose(() => askMood(r.spot));
+        const left = wait();
+        if (left > 0) naiwaCardShow('回報奶娃', '', [], [say(`每 5 分鐘只能回報一次，請 ${Math.ceil(left / 60000)} 分鐘後再試。`)]);
+        else askMood(r.spot);
+      }));
     naiwaCardShow(`奶娃${MOODS[r.mood] ?? ''}`, `${naiwaPlace(r)}・${age(r)}`, actions);
   }
 
@@ -581,7 +710,8 @@ export async function start(root: HTMLElement) {
   }
   naiwaChip.addEventListener('click', () => {
     const n = current(naiwa).length;
-    naiwaCardShow('奶娃追蹤', n ? `地圖上有 ${n} 筆最近 1 小時的回報（限時功能）` : '最近 1 小時沒有回報（限時功能）', []);
+    naiwaCardShow('奶娃追蹤', n ? `地圖上有 ${n} 筆最近 1 小時的回報（限時功能）` : '最近 1 小時沒有回報（限時功能）',
+      canReport() ? [button('回報奶娃', startReport, true)] : []);
   });
 
   async function refreshNaiwa() {
@@ -611,7 +741,8 @@ export async function start(root: HTMLElement) {
     relabel();
   }
 
-  function tap(target: Element | null) {
+  function tap(target: Element | null, at: Pt) {
+    if (placing) return placeAt(at, target);
     const node = target?.closest('.cm-pick, .cm-building');
     const sh = shapes.find((s) => s.el === node);
     if (state.building) {

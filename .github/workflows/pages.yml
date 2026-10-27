@@ -31,6 +31,8 @@ jobs:
         env:
           # 奶娃追蹤 reads reports from this Firestore project; kept out of the repo.
           PUBLIC_NAIWA_PROJECT: ${{ vars.NAIWA_PROJECT }}
+          PUBLIC_NAIWA_API_KEY: ${{ vars.NAIWA_API_KEY }}
+      - run: python3 firebase/naiwa_rules.py --check
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

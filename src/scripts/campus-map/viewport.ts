@@ -100,6 +100,12 @@ export class Viewport {
     return [x + this.view.tx, y + this.view.ty];
   }
 
+  /** The world point under screen point [p]. */
+  toWorld([sx, sy]: Pt): Pt {
+    const x = sx - this.view.tx, y = sy - this.view.ty, s = this.view.s;
+    return this.rotated ? [y / s, -x / s] : [x / s, y / s];
+  }
+
   /** How many screen pixels one metre is right now. */
   get scale() {
     return this.view.s;

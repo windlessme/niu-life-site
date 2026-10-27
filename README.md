@@ -56,7 +56,7 @@ public/
 - **隱私權政策**：iOS 版、Android 版與網站共用 `src/content/privacy.md` 這一份。修改後請更新 frontmatter 的 `updated` 日期。
 - **App 畫面**：`public/assets/screens/` 每張畫面有兩種尺寸，540×1200 的 `<名稱>.webp` 和給手機用的 360 寬 `<名稱>-360.webp`，換圖時兩份都要換。
 - **校園地圖**：資料來源是 Android repo 的 `app-content/campus-map`（OpenStreetMap 總覽與各大樓樓層平面圖，App 也用同一份）。地圖或平面圖更新後執行 `node scripts/sync-campus-map.mjs ../niu-app-android`，再提交 `src/data/campus-map/`。網址可以帶 `?b=<大樓>&f=<樓層>&r=<教室>`，例如 `/map?r=工423`。地圖左下角的「© OpenStreetMap 貢獻者」依 ODbL 必須保留。
-- **奶娃追蹤（限時功能）**：`/map` 會顯示 App 使用者最近 1 小時回報的奶娃位置（`src/scripts/campus-map/naiwa.ts`，每分鐘用 Firestore REST API 讀一次，網站只讀不寫，回報要用 App）。Firestore 專案由 GitHub Actions 的 repo 變數 `NAIWA_PROJECT` 在建置時帶入，沒設定時這一層不會出現；本機要看的話，在 `.env` 放 `PUBLIC_NAIWA_PROJECT=<專案>`（已 gitignore）。讀取規則在 Android repo 的 `firebase/firestore.rules`。
+- **奶娃追蹤（限時功能）**：`/map` 顯示最近 1 小時的奶娃回報，訪客也能直接回報（`src/scripts/campus-map/naiwa.ts`）。讀取用 Firestore REST API、不用登入；回報前先顯示說明，同意後用 Firebase 匿名登入（存在瀏覽器），每 5 分鐘一次。Firestore 專案與網頁 API 金鑰由 GitHub Actions 的 repo 變數 `NAIWA_PROJECT`、`NAIWA_API_KEY` 在建置時帶入，沒設定時這一層不會出現；本機要看的話，在 `.env` 放 `PUBLIC_NAIWA_PROJECT`、`PUBLIC_NAIWA_API_KEY`（已 gitignore）。規則在 `firebase/firestore.rules`，由 `python3 firebase/naiwa_rules.py` 依地圖資料產生（部署前會檢查），**地圖資料同步後要重跑並部署**：`cd firebase && npx firebase-tools deploy --only firestore:rules --project <專案>`；規則測試 `cd firebase && npm install && npm test`。
 - **新增頁面**：在 `src/pages/` 加檔案；要讓搜尋引擎收錄的話，把路徑加進 `src/site.ts` 的 `INDEXED_PAGES`，`sitemap.xml` 會自動列出。
 - **頁面標題與分享預覽**：由各頁傳給 `Base.astro` 的 `title` 與 `description` 產生；首頁的結構化資料（JSON-LD）在 `src/pages/index.astro`。
 
