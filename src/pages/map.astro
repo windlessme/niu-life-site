@@ -217,6 +217,9 @@ const sortRooms = (a: string, b: string) => a.localeCompare(b, 'zh-Hant', { nume
   .cm-naiwa { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
   .cm-paw { position: absolute; pointer-events: auto; transform: translate(-50%, -50%); width: 32px; height: 32px; padding: 0; display: grid; place-items: center; border: 2px solid #fff; border-radius: 50%; background: var(--cm-paw); color: var(--cm-paw-ink); box-shadow: 0 2px 6px rgb(0 0 0 / .25); cursor: pointer; }
   .cm-paw svg { width: 18px; height: 18px; fill: currentColor; }
+  /* Placing a report: taps go through to the map. */
+  .cm-naiwa.placing .cm-paw { pointer-events: none; }
+  .cm-paw::before { content: ''; position: absolute; inset: -8px; border-radius: 50%; }
   .cm-paw span { position: absolute; top: 31px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 1px 7px; border-radius: 999px; background: var(--cm-paw); color: var(--cm-paw-ink); font-size: 11px; font-weight: 700; }
   .cm-naiwa-chip { position: absolute; top: 16px; left: 16px; display: flex; align-items: center; gap: 8px; padding: 6px 14px 6px 6px; border: 0; border-radius: 999px; background: var(--surface); color: var(--text); font: inherit; font-weight: 700; box-shadow: var(--cm-shadow); cursor: pointer; }
   .cm-naiwa-chip[hidden] { display: none; }
@@ -289,9 +292,18 @@ const sortRooms = (a: string, b: string) => a.localeCompare(b, 'zh-Hant', { nume
     .cm-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .cm-controls { bottom: auto; top: 16px; right: auto; left: 16px; }
     .cm-naiwa-chip { left: 72px; }
-    /* Clear of the floor picker on the right. */
-    .cm-naiwa-card { left: 16px; top: 64px; width: calc(100% - 96px); }
-    .cm-naiwa-banner { bottom: auto; top: 64px; border-radius: 18px; }
+    /* The card is a sheet over the drawer; the banner sits just above
+       the closed drawer, clear of the zoom buttons and floor picker. */
+    .cm-naiwa-card {
+      top: auto; left: 0; bottom: 0; width: auto; right: 0; max-height: 78%; overflow-y: auto; overscroll-behavior: contain;
+      padding: 16px 16px calc(20px + env(safe-area-inset-bottom)); border-radius: 20px 20px 0 0; box-shadow: 0 -4px 24px rgb(0 0 0 / .18);
+    }
+    .cm-naiwa-actions { display: grid; grid-template-columns: 1fr 1fr; }
+    .cm-naiwa-actions .pill { justify-content: center; min-height: 44px; font-size: 1rem; }
+    .cm-naiwa-actions .pill:last-child:nth-child(odd) { grid-column: 1 / -1; }
+    .cm-naiwa-card:not([hidden]) ~ .cm-naiwa-banner { display: none; }
+    .cm-naiwa-banner { bottom: calc(var(--cm-peek, 172px) + 12px); border-radius: 18px; padding: 10px 10px 10px 16px; }
+    .cm-naiwa-banner button { min-height: 40px; }
     .cm-credit { bottom: auto; top: 8px; left: auto; right: 12px; }
   }
   @media (prefers-reduced-motion: reduce) { .cm-panel { transition: none; } }

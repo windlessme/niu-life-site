@@ -10,7 +10,7 @@ import {
   type Space,
 } from './data';
 import { Viewport, type Padding } from './viewport';
-import { accept, accepted, age, canReport, current, fetchReports, MOODS, naiwaEnabled, opacity, send, wait, type NaiwaReport, type NaiwaSpot } from './naiwa';
+import { accept, accepted, age, canReport, current, fetchReports, GONE, MOODS, naiwaEnabled, opacity, send, wait, type NaiwaReport, type NaiwaSpot } from './naiwa';
 
 const NS = 'http://www.w3.org/2000/svg';
 const ORDER: Space['kind'][] = ['terrace', 'corridor', 'void', 'room', 'restroom', 'stairs', 'elevator'];
@@ -109,6 +109,8 @@ export async function start(root: HTMLElement) {
     panel.classList.toggle('open', open);
     panel.style.transition = animate ? '' : 'none';
     panel.style.height = PHONE.matches ? `${open ? tall() : peek()}px` : '';
+    // The 奶娃 banner sits just above the closed drawer.
+    root.style.setProperty('--cm-peek', `${peek()}px`);
     handle.setAttribute('aria-expanded', String(open));
     handle.setAttribute('aria-label', open ? '收合清單' : '展開清單');
   }
@@ -600,16 +602,23 @@ export async function start(root: HTMLElement) {
     ], [html('ul', { class: 'cm-naiwa-points' }, ...points.map((t) => html('li', { textContent: t })))]);
   }
 
-  function startReport() {
-    if (!accepted()) return disclose(startReport);
+  /** Past the disclosure and the 5-minute pace, then [go]. */
+  function whenReady(go: () => void) {
+    if (!accepted()) return disclose(go);
     const left = wait();
-    if (left > 0) {
-      naiwaCardShow('回報奶娃', '', [], [say(`每 5 分鐘只能回報一次，請 ${Math.ceil(left / 60000)} 分鐘後再試。`)]);
-      return;
-    }
+    if (left > 0) naiwaCardShow('回報奶娃', '', [], [say(`每 5 分鐘只能回報一次，請 ${Math.ceil(left / 60000)} 分鐘後再試。`)]);
+    else go();
+  }
+
+  function startReport() {
+    whenReady(startPlacing);
+  }
+
+  function startPlacing() {
     naiwaCard.hidden = true;
     placing = true;
     pending = undefined;
+    naiwaLayer.classList.add('placing');
     naiwaBanner.hidden = false;
     naiwaBanner.querySelector('.cm-naiwa-banner-text')!.textContent = state.building
       ? `點平面圖上奶娃的位置（${floorTitle(state.floor!.id)}）`
@@ -620,6 +629,7 @@ export async function start(root: HTMLElement) {
   function stopPlacing() {
     placing = false;
     pending = undefined;
+    naiwaLayer.classList.remove('placing');
     naiwaBanner.hidden = true;
     placeNaiwa();
   }
@@ -664,24 +674,31 @@ export async function start(root: HTMLElement) {
     return naiwaPlace({ id: '', spot, mood: 'here', at: Date.now() });
   }
 
+  async function report(spot: NaiwaSpot, mood: string, thanks: string) {
+    for (const b of naiwaCard.querySelectorAll('button')) b.disabled = true;
+    const sent = await send(spot, mood);
+    if (sent === 'sent') {
+      stopPlacing();
+      naiwaCardShow('已回報，謝謝你！', thanks, []);
+      await refreshNaiwa();
+    } else {
+      naiwaCardShow('回報奶娃', spotPlace(spot), [], [say(sent === 'tooSoon' ? '每 5 分鐘只能回報一次，請稍後再試。' : '回報失敗，請檢查網路後再試一次。')], stopPlacing);
+    }
+  }
+
   function askMood(spot: NaiwaSpot) {
-    const moods = Object.entries(MOODS).map(([key, text]) => button(text, async () => {
-      for (const b of naiwaCard.querySelectorAll('button')) b.disabled = true;
-      const sent = await send(spot, key);
-      if (sent === 'sent') {
-        stopPlacing();
-        naiwaCardShow('已回報，謝謝你！', spotPlace(spot), []);
-        await refreshNaiwa();
-      } else {
-        naiwaCardShow('回報奶娃', spotPlace(spot), [], [say(sent === 'tooSoon' ? '每 5 分鐘只能回報一次，請稍後再試。' : '回報失敗，請檢查網路後再試一次。')], stopPlacing);
-      }
-    }));
+    const moods = Object.entries(MOODS).map(([key, text]) => button(text, () => report(spot, key, spotPlace(spot))));
     naiwaCardShow('奶娃在做什麼？', spotPlace(spot), moods, [], stopPlacing);
   }
 
   function showNaiwa(r: NaiwaReport) {
     const actions: HTMLElement[] = [];
     const spot = r.spot;
+    if (canReport())
+      actions.push(
+        button('還在這裡', () => whenReady(() => askMood(r.spot)), true),
+        button('不在這裡了', () => whenReady(() => report(r.spot, GONE, `${naiwaPlace(r)}的標記已從地圖移除`))),
+      );
     if (spot.kind === 'floor' && state.building?.id !== spot.building) {
       const b = plan(spot.building);
       const open = html('button', { type: 'button', class: 'pill', textContent: '查看樓層平面圖' });
@@ -691,13 +708,6 @@ export async function start(root: HTMLElement) {
       });
       actions.push(open);
     }
-    if (canReport())
-      actions.push(button('我也看到，還在這裡', () => {
-        if (!accepted()) return disclose(() => askMood(r.spot));
-        const left = wait();
-        if (left > 0) naiwaCardShow('回報奶娃', '', [], [say(`每 5 分鐘只能回報一次，請 ${Math.ceil(left / 60000)} 分鐘後再試。`)]);
-        else askMood(r.spot);
-      }));
     naiwaCardShow(`奶娃${MOODS[r.mood] ?? ''}`, `${naiwaPlace(r)}・${age(r)}`, actions);
   }
 

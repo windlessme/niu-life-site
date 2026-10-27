@@ -71,7 +71,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasOnly(
           ['v', 'kind', 'x', 'y', 'building', 'floor', 'room', 'mood', 'at', 'expiresAt'])
         && request.resource.data.v == 1
-        && request.resource.data.mood in ['here', 'sleeping', 'walking', 'eating']
+        && request.resource.data.mood in ['here', 'sleeping', 'walking', 'eating', 'gone']
         && request.resource.data.at == request.time
         && request.resource.data.expiresAt is timestamp
         && request.resource.data.expiresAt > request.time

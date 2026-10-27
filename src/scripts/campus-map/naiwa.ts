@@ -1,7 +1,6 @@
-// 奶娃追蹤 on /map: the reports students send from the NIU-Life app, read
-// from Firestore's REST API (reads need no sign-in; only the app writes).
-// Same rules as the app: an hour on the map, fading as they age, and the
-// newest one per place.
+// 奶娃追蹤 on /map: visitors' reports, read from Firestore's REST API
+// (reads need no sign-in). An hour on the map, fading as they age, and the
+// newest one per place; a newer 「不在這裡了」 clears the place.
 
 import type { Pt } from './data';
 
@@ -16,6 +15,9 @@ export const MOODS: Record<string, string> = {
   walking: '在散步',
   eating: '在吃東西',
 };
+
+/** Sent from a report's card when 奶娃 has left; never shown as a marker. */
+export const GONE = 'gone';
 
 export type NaiwaSpot =
   | { kind: 'campus'; at: Pt }
@@ -68,7 +70,10 @@ export async function fetchReports(now = Date.now()): Promise<NaiwaReport[]> {
 
 const dist = (a: Pt, b: Pt) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 
-/** Still shown at [now], one per place: within 8 m on a floor or 15 m outdoors. */
+/**
+ * Still shown at [now], one per place (within 8 m on a floor or 15 m
+ * outdoors), unless the newest there says 奶娃 has left.
+ */
 export function current(reports: NaiwaReport[], now = Date.now()) {
   const kept: NaiwaReport[] = [];
   const same = (a: NaiwaSpot, b: NaiwaSpot) =>
@@ -77,7 +82,7 @@ export function current(reports: NaiwaReport[], now = Date.now()) {
       : a.kind === 'floor' && b.kind === 'floor' && a.building === b.building && a.floor === b.floor && dist(a.at, b.at) < 8;
   for (const r of [...reports].sort((a, b) => b.at - a.at))
     if (now - r.at < LIFETIME && !kept.some((k) => same(k.spot, r.spot))) kept.push(r);
-  return kept;
+  return kept.filter((r) => r.mood !== GONE);
 }
 
 /** 1 when new, .35 at the end of the hour. */

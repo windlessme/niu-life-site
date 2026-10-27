@@ -22,6 +22,7 @@ const b = env.authenticatedContext('bob').firestore();
 const c = env.authenticatedContext('carol').firestore();
 const d = env.authenticatedContext('dave').firestore();
 const e = env.authenticatedContext('erin').firestore();
+const f = env.authenticatedContext('frank').firestore();
 const anon = env.unauthenticatedContext().firestore();
 
 await check('campus report', assertSucceeds(send(a, 'alice', { kind: 'campus', x: 10, y: -20 })));
@@ -33,6 +34,7 @@ await check('outside campus denied', assertFails(send(c, 'carol', { kind: 'campu
 await check('outside building denied', assertFails(send(c, 'carol', { kind: 'floor', building: 'jiaose', floor: '1F', x: 500, y: 10 })));
 await check('extra field denied', assertFails(send(c, 'carol', { kind: 'campus', x: 1, y: 1, uid: 'carol' })));
 await check('campus with building denied', assertFails(send(c, 'carol', { kind: 'campus', x: 1, y: 1, building: 'jiaose' })));
+await check('gone report', assertSucceeds(send(f, 'frank', { kind: 'campus', x: 10, y: -20, mood: 'gone' })));
 await check('bad mood denied', assertFails(send(c, 'carol', { kind: 'campus', x: 1, y: 1, mood: 'angry' })));
 await check('report without reporter denied', assertFails(setDoc(doc(collection(d, 'naiwaReports')), { v: 1, kind: 'campus', x: 1, y: 1, mood: 'here', at: serverTimestamp(), expiresAt: later() })));
 await check('someone else\'s turn denied', assertFails(setDoc(doc(d, 'naiwaReporters', 'alice'), { last: serverTimestamp() })));
