@@ -536,27 +536,20 @@ export async function start(root: HTMLElement) {
   }
 
   function drawReports() {
-    const shown = current(naiwa);
+    const [r] = current(naiwa);
+    if (!r) return;
+    const spot = r.spot;
     if (state.building) {
-      const b = state.building, f = state.floor!;
-      for (const r of shown)
-        if (r.spot.kind === 'floor' && r.spot.building === b.id && r.spot.floor === f.id) {
-          const room = naiwaRoom(r);
-          marker(room ? centre(labelBox(room)) : r.spot.at, r);
-        }
+      if (spot.kind === 'floor' && spot.building === state.building.id && spot.floor === state.floor!.id) {
+        const room = naiwaRoom(r);
+        marker(room ? centre(labelBox(room)) : spot.at, r);
+      }
       return;
     }
-    const inBuildings = new Map<string, NaiwaReport[]>();
-    for (const r of shown) {
-      if (r.spot.kind === 'campus') marker(r.spot.at, r);
-      else inBuildings.set(r.spot.building, [...(inBuildings.get(r.spot.building) ?? []), r]);
-    }
-    for (const [id, list] of inBuildings) {
-      const o = overview.buildings.find((x) => x.plan === id);
-      if (!o) continue;
-      const floors = [...new Set(list.map((r) => (r.spot as { floor: string }).floor))];
-      marker(centroid(o.polygon), list[0], floors.length > 2 ? `${floors.length} 層` : floors.join('・'));
-    }
+    if (spot.kind === 'campus') return marker(spot.at, r);
+    // Inside: on the building, with the floor.
+    const o = overview.buildings.find((x) => x.plan === spot.building);
+    if (o) marker(centroid(o.polygon), r, spot.floor);
   }
 
   function naiwaCardShow(title: string, sub: string, actions: HTMLElement[], body: HTMLElement[] = [], onClose?: () => void) {
@@ -698,6 +691,7 @@ export async function start(root: HTMLElement) {
       actions.push(
         button('還在這裡', () => whenReady(() => askMood(r.spot)), true),
         button('不在這裡了', () => whenReady(() => report(r.spot, GONE, `${naiwaPlace(r)}的標記已從地圖移除`))),
+        button('在別的地方看到', startReport),
       );
     if (spot.kind === 'floor' && state.building?.id !== spot.building) {
       const b = plan(spot.building);
@@ -713,15 +707,15 @@ export async function start(root: HTMLElement) {
 
   function renderNaiwaChip() {
     if (!naiwaEnabled()) return;
-    const n = current(naiwa).length;
+    const [r] = current(naiwa);
     naiwaChip.hidden = false;
-    naiwaChip.querySelector('.cm-naiwa-count')!.textContent = n ? `奶娃・${n}` : '奶娃追蹤';
-    naiwaChip.setAttribute('aria-label', n ? `奶娃追蹤，地圖上有 ${n} 筆回報` : '奶娃追蹤');
+    naiwaChip.querySelector('.cm-naiwa-count')!.textContent = r ? `奶娃・${age(r)}` : '奶娃追蹤';
+    naiwaChip.setAttribute('aria-label', r ? `奶娃追蹤，${age(r)}在${naiwaPlace(r)}` : '奶娃追蹤');
   }
   naiwaChip.addEventListener('click', () => {
-    const n = current(naiwa).length;
-    naiwaCardShow('奶娃追蹤', n ? `地圖上有 ${n} 筆最近 1 小時的回報（限時功能）` : '最近 1 小時沒有回報（限時功能）',
-      canReport() ? [button('回報奶娃', startReport, true)] : []);
+    const [r] = current(naiwa);
+    if (r) return showNaiwa(r);
+    naiwaCardShow('奶娃追蹤', '最近 1 小時沒有人看到奶娃（限時功能）', canReport() ? [button('回報奶娃', startReport, true)] : []);
   });
 
   async function refreshNaiwa() {

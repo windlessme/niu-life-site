@@ -1,6 +1,6 @@
 // 奶娃追蹤 on /map: visitors' reports, read from Firestore's REST API
-// (reads need no sign-in). An hour on the map, fading as they age, and the
-// newest one per place; a newer 「不在這裡了」 clears the place.
+// (reads need no sign-in). The newest one marks 奶娃 for an hour, fading as
+// it ages; a 「不在這裡了」 clears it.
 
 import type { Pt } from './data';
 
@@ -68,21 +68,14 @@ export async function fetchReports(now = Date.now()): Promise<NaiwaReport[]> {
   return rows.flatMap((r) => (r.document ? parse(r.document.name, r.document.fields) ?? [] : []));
 }
 
-const dist = (a: Pt, b: Pt) => Math.hypot(a[0] - b[0], a[1] - b[1]);
-
 /**
- * Still shown at [now], one per place (within 8 m on a floor or 15 m
- * outdoors), unless the newest there says 奶娃 has left.
+ * Where 奶娃 is at [now]: there is one 奶娃, so only the newest report from
+ * the last hour counts, whatever it says, and none once someone says she
+ * has left.
  */
 export function current(reports: NaiwaReport[], now = Date.now()) {
-  const kept: NaiwaReport[] = [];
-  const same = (a: NaiwaSpot, b: NaiwaSpot) =>
-    a.kind === 'campus' && b.kind === 'campus'
-      ? dist(a.at, b.at) < 15
-      : a.kind === 'floor' && b.kind === 'floor' && a.building === b.building && a.floor === b.floor && dist(a.at, b.at) < 8;
-  for (const r of [...reports].sort((a, b) => b.at - a.at))
-    if (now - r.at < LIFETIME && !kept.some((k) => same(k.spot, r.spot))) kept.push(r);
-  return kept.filter((r) => r.mood !== GONE);
+  const newest = reports.filter((r) => now - r.at < LIFETIME).sort((a, b) => b.at - a.at)[0];
+  return newest && newest.mood !== GONE ? [newest] : [];
 }
 
 /** 1 when new, .35 at the end of the hour. */
